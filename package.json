@@ -1,0 +1,22 @@
+{
+    "name": "@bomb.sh/template",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "license": "MIT",
+    "author": {
+        "name": "Bombshell",
+        "email": "oss@bomb.sh",
+        "url": "https://bomb.sh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bombshell-dev/template.git"
+    },
+    "scripts": {
+        "start": "tsx index.ts"
+    },
+    "devDependencies": {
+        "tsx": "^4.19.2"
+    }
+}
