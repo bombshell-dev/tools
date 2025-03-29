@@ -1,9 +1,19 @@
 {
-    "name": "@bomb.sh/template",
+    "name": "@bomb.sh/nucleus",
     "private": true,
     "version": "0.0.0",
     "type": "module",
     "license": "MIT",
+    "bin": {
+        "nucleus": "./index.ts"
+    },
+    "description": "The internal dev, build, and lint CLI for Bombshell projects",
+    "keywords": [
+        "cli",
+        "bombshell",
+        "nucleus"
+    ],
+    "homepage": "https://bomb.sh",
     "author": {
         "name": "Bombshell",
         "email": "oss@bomb.sh",
@@ -11,12 +21,40 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/bombshell-dev/template.git"
+        "url": "git+https://github.com/bombshell-dev/nucleus.git"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        },
+        "./package.json": "./package.json",
+        "./tsconfig.json": "./tsconfig.json"
     },
     "scripts": {
-        "start": "tsx index.ts"
+        "nucleus": "node --experimental-strip-types --no-warnings ./src/bin.ts",
+        "dev": "pnpm run nucleus dev",
+        "build": "pnpm run nucleus build",
+        "format": "pnpm run nucleus format",
+        "init": "pnpm run nucleus init",
+        "lint": "pnpm run nucleus lint",
+        "test": "pnpm run nucleus test"
     },
     "devDependencies": {
-        "tsx": "^4.19.2"
+        "@types/node": "^22.13.14"
+    },
+    "dependencies": {
+        "@biomejs/biome": "^1.9.4",
+        "@bomb.sh/args": "^0.3.1",
+        "esbuild": "^0.25.1",
+        "escalade": "^3.2.0",
+        "tinyexec": "^1.0.1"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "esbuild"
+        ]
+    },
+    "volta": {
+        "node": "22.14.0"
     }
 }

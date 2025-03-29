@@ -1,22 +1,9 @@
-# `@bomb.sh/stub`
+# `@bomb.sh/nucleus`
 
-## Install
-
-You can install `@bomb.sh/stub` manually by running this command:
-
-```sh
-npm install @bomb.sh/stub
-```
-
-Looking for help? Start with our [Getting Started][docs] guide.
-
-## Documentation
-
-Visit our [official documentation][docs].
-
-## Support
-
-Having trouble? Get help in the official [Bombshell Discord][discord].
-
-[docs]: https://bomb.sh/docs
-[discord]: https://bomb.sh/chat
+This package is the internal CLI for our org. It provides:
+- standardized `dev` command (`node --strip-types`)
+- standardized `build` command with `esbuild`
+- standardized `test` command
+- standardized `lint` and `format` commands
+- standardized `tsconfig` settings
+- an opportunity to dogfood our packages

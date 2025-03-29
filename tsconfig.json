@@ -15,9 +15,12 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
+    "rewriteRelativeImportExtensions": true,
 
     /* Library mode */
-    "module": "preserve",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "noEmit": true,
     "declaration": true,
     "lib": ["es2022"],
