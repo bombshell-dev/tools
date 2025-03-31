@@ -6,19 +6,24 @@ import { x } from "tinyexec";
 import type { CommandContext } from "../context.ts";
 
 export async function init(ctx: CommandContext) {
-	const [_name = '.'] = ctx.args;
-	const name = _name === '.' ? dirname(cwd()) : _name;
+	const [_name = "."] = ctx.args;
+	const name = _name === "." ? dirname(cwd()) : _name;
 	const dest = new URL("./.temp/", pathToFileURL([cwd(), sep].join("")));
-	for await (const line of x("pnpx", ["giget@latest", "gh:bombshell-dev/template", name])) {
+	for await (const line of x("pnpx", [
+		"giget@latest",
+		"gh:bombshell-dev/template",
+		name,
+	])) {
 		console.log(line);
 	}
 
 	const promises: Promise<void>[] = [];
 	for (const file of ["package.json", "README.md"]) {
-		promises.push(postprocess(new URL(file, dest), (contents) => {
-			return contents
-				.replaceAll("$name", name);
-		}));
+		promises.push(
+			postprocess(new URL(file, dest), (contents) => {
+				return contents.replaceAll("$name", name);
+			}),
+		);
 	}
 	await Promise.all(promises);
 }
