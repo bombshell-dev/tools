@@ -39,6 +39,7 @@
         "test": "pnpm run bsh test"
     },
     "devDependencies": {
+        "@changesets/cli": "^2.28.1",
         "@types/node": "^22.13.14"
     },
     "dependencies": {
@@ -48,12 +49,13 @@
         "escalade": "^3.2.0",
         "tinyexec": "^1.0.1"
     },
+    "packageManager": "pnpm@10.4.0",
+    "volta": {
+        "node": "22.14.0"
+    },
     "pnpm": {
         "onlyBuiltDependencies": [
             "esbuild"
         ]
-    },
-    "volta": {
-        "node": "22.14.0"
     }
 }
