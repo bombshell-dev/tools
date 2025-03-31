@@ -1,4 +1,4 @@
-name: Format
+name: CI
 
 on:
   workflow_dispatch:
@@ -7,7 +7,8 @@ on:
       - main
 
 jobs:
-  format:
+  ci:
     if: github.repository_owner == 'bombshell-dev'
-    uses: bombshell-dev/automation/.github/workflows/format.yml@main
+    uses: bombshell-dev/automation/.github/workflows/publish.yml@main
     secrets: inherit
+
