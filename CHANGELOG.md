@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.0.3
+
+### Patch Changes
+
+- Updates bundling approach to avoid code duplication
+
 ## 0.0.2
 
 ### Patch Changes
