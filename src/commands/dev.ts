@@ -1,9 +1,7 @@
-// standardized `dev` command, shells out to `node --strip-types`
-import { argv } from "node:process";
-
 import { x } from "tinyexec";
 import type { CommandContext } from "../context.ts";
 
+// standardized `dev` command, shells out to `node --strip-types`
 export async function dev(ctx: CommandContext) {
 	const { args } = ctx;
 	const [file = "./src/index.ts", ...rest] = args;
