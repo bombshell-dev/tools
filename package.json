@@ -1,17 +1,16 @@
 {
-    "name": "@bomb.sh/nucleus",
-    "private": true,
+    "name": "@bomb.sh/tools",
     "version": "0.0.0",
     "type": "module",
     "license": "MIT",
     "bin": {
-        "nucleus": "./index.ts"
+        "bsh": "./index.ts"
     },
     "description": "The internal dev, build, and lint CLI for Bombshell projects",
     "keywords": [
         "cli",
         "bombshell",
-        "nucleus"
+        "internal"
     ],
     "homepage": "https://bomb.sh",
     "author": {
@@ -21,7 +20,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/bombshell-dev/nucleus.git"
+        "url": "git+https://github.com/bombshell-dev/tools.git"
     },
     "exports": {
         ".": {
@@ -31,13 +30,13 @@
         "./tsconfig.json": "./tsconfig.json"
     },
     "scripts": {
-        "nucleus": "node --experimental-strip-types --no-warnings ./src/bin.ts",
-        "dev": "pnpm run nucleus dev",
-        "build": "pnpm run nucleus build",
-        "format": "pnpm run nucleus format",
-        "init": "pnpm run nucleus init",
-        "lint": "pnpm run nucleus lint",
-        "test": "pnpm run nucleus test"
+        "bsh": "node --experimental-strip-types --no-warnings ./src/bin.ts",
+        "dev": "pnpm run bsh dev",
+        "build": "pnpm run bsh build",
+        "format": "pnpm run bsh format",
+        "init": "pnpm run bsh init",
+        "lint": "pnpm run bsh lint",
+        "test": "pnpm run bsh test"
     },
     "devDependencies": {
         "@types/node": "^22.13.14"
