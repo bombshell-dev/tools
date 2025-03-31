@@ -2,7 +2,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import escalade from "escalade";
 
 export function local(file: string) {
-	return fileURLToPath(new URL(`../node_modules/.bin/${file}`, import.meta.url))
+	return fileURLToPath(
+		new URL(`../node_modules/.bin/${file}`, import.meta.url),
+	);
 }
 
 export async function getPackageJSON() {
