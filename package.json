@@ -4,7 +4,7 @@
     "type": "module",
     "license": "MIT",
     "bin": {
-        "bsh": "./index.ts"
+        "bsh": "dist/bin.js"
     },
     "description": "The internal dev, build, and lint CLI for Bombshell projects",
     "keywords": [
@@ -28,8 +28,9 @@
     },
     "exports": {
         ".": {
-            "import": "./dist/index.js"
+            "import": "./dist/bin.js"
         },
+        "./*": "./dist/*",
         "./package.json": "./package.json",
         "./tsconfig.json": "./tsconfig.json"
     },
