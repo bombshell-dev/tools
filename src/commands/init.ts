@@ -12,16 +12,12 @@ export async function init(ctx: CommandContext) {
 	for await (const line of x("pnpx", ["giget@latest", "gh:bombshell-dev/template", name])) {
 		console.log(line);
 	}
-	const {
-		default: { version },
-	} = await import("@bomb.sh/nucleus/package.json", { with: { type: "json" } });
 
 	const promises: Promise<void>[] = [];
 	for (const file of ["package.json", "README.md"]) {
 		promises.push(postprocess(new URL(file, dest), (contents) => {
 			return contents
-				.replaceAll("$name", name)
-				.replaceAll("$nucleus_version", version);
+				.replaceAll("$name", name);
 		}));
 	}
 	await Promise.all(promises);
