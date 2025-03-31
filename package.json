@@ -22,6 +22,10 @@
         "type": "git",
         "url": "git+https://github.com/bombshell-dev/tools.git"
     },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
     "exports": {
         ".": {
             "import": "./dist/index.js"
