@@ -23,8 +23,7 @@
         "url": "git+https://github.com/bombshell-dev/tools.git"
     },
     "publishConfig": {
-        "access": "public",
-        "provenance": true
+        "access": "public"
     },
     "exports": {
         ".": {
