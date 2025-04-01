@@ -1,3 +1,4 @@
+import { cwd } from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import escalade from "escalade";
 
@@ -8,7 +9,7 @@ export function local(file: string) {
 }
 
 export async function getPackageJSON() {
-	const pkg = await escalade(fileURLToPath(import.meta.url), (dir, files) => {
+	const pkg = await escalade(cwd(), (dir, files) => {
 		return files.find((file) => file === "package.json");
 	});
 	if (!pkg) {

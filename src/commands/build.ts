@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import { build as esbuild } from "esbuild";
+import { type Plugin, build as esbuild } from "esbuild";
 import type { CommandContext } from "../context.ts";
 import { getPackageJSON } from "../utils.ts";
 
@@ -8,6 +8,7 @@ export async function build(ctx: CommandContext) {
 	await rm("dist", { recursive: true, force: true });
 	await esbuild({
 		entryPoints: ["src/*", "src/**/*"],
+		plugins: [ts()],
 		outdir: "dist",
 		platform: "node",
 		format: "esm",
@@ -21,3 +22,15 @@ export async function build(ctx: CommandContext) {
 		process.exit(1);
 	});
 }
+
+function ts(): Plugin {
+	return {
+		name: 'ts',
+		setup(build) {
+			build.onResolve({ filter: /\.tsx?$/ }, args => {
+				return { path: args.path.replace(/\.tsx?$/, '.js'), external: true }
+			})
+		},
+	}
+}
+
