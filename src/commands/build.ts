@@ -25,12 +25,11 @@ export async function build(ctx: CommandContext) {
 
 function ts(): Plugin {
 	return {
-		name: 'ts',
+		name: "ts",
 		setup(build) {
-			build.onResolve({ filter: /\.tsx?$/ }, args => {
-				return { path: args.path.replace(/\.tsx?$/, '.js'), external: true }
-			})
+			build.onResolve({ filter: /\.tsx?$/ }, (args) => {
+				return { path: args.path.replace(/\.tsx?$/, ".js"), external: true };
+			});
 		},
-	}
+	};
 }
-
