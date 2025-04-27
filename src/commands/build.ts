@@ -17,7 +17,14 @@ export async function build(ctx: CommandContext) {
 		target: "node20",
 		minify: true,
 		bundle: true,
-		external: ["node:*", "cloudflare:*", "bun:*", "../*", "./*", ...Object.keys(dependencies)],
+		external: [
+			"node:*",
+			"cloudflare:*",
+			"bun:*",
+			"../*",
+			"./*",
+			...Object.keys(dependencies),
+		],
 	}).catch(() => {
 		process.exit(1);
 	});
