@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.0.5
+
+### Patch Changes
+
+- f1425e7: Fixes issue with import paths
+
 ## 0.0.4
 
 ### Patch Changes
