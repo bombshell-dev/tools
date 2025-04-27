@@ -4,7 +4,7 @@ import type { CommandContext } from "../context.ts";
 import { getPackageJSON } from "../utils.ts";
 
 export async function build(ctx: CommandContext) {
-	const { dependencies } = await getPackageJSON();
+	const { dependencies = {} } = await getPackageJSON();
 	await rm("dist", { recursive: true, force: true });
 	await esbuild({
 		entryPoints: ["src/*", "src/**/*"],
