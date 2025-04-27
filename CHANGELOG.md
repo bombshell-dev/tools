@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.0.6
+
+### Patch Changes
+
+- fe016ca: Fixes an issue when a package.json doesn't have any dependencies
+
 ## 0.0.5
 
 ### Patch Changes
