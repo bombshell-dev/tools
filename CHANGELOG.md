@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.0.7
+
+### Patch Changes
+
+- 48d96a9: Fixes a bundling issue with `cloudflare:*` and `bun:*` import specifiers
+
 ## 0.0.6
 
 ### Patch Changes
