@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.0.8
+
+### Patch Changes
+
+- Publishes the changes that were supposed to land in v0.0.7
+
 ## 0.0.7
 
 ### Patch Changes
