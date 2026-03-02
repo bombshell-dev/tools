@@ -6,7 +6,9 @@ export async function dev(ctx: CommandContext) {
 	const { args } = ctx;
 	const [file = "./src/index.ts", ...rest] = args;
 	// console.clear();
-	console.log(`node --experimental-transform-types --disable-warning=ExperimentalWarning ${args.join(" ")}`);
+	console.log(
+		`node --experimental-transform-types --disable-warning=ExperimentalWarning ${args.join(" ")}`,
+	);
 	const stdio = x("node", [
 		"--experimental-transform-types",
 		"--no-warnings",
