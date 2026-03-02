@@ -11,4 +11,7 @@ jobs:
     if: github.repository_owner == 'bombshell-dev'
     uses: bombshell-dev/automation/.github/workflows/publish.yml@main
     secrets: inherit
-
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
