@@ -1,12 +1,13 @@
 import { argv } from "node:process";
 import { build } from "./commands/build.ts";
 import { dev } from "./commands/dev.ts";
+import { env } from "./commands/env.ts";
 import { format } from "./commands/format.ts";
 import { init } from "./commands/init.ts";
 import { lint } from "./commands/lint.ts";
 import { test } from "./commands/test.ts";
 
-const commands = { build, dev, format, init, lint, test };
+const commands = { build, dev, env, format, init, lint, test };
 
 async function main() {
 	const [command, ...args] = argv.slice(2);

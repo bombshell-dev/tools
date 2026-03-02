@@ -8,6 +8,16 @@ export function local(file: string) {
 	);
 }
 
+export async function getPackageJSONPath(): Promise<string> {
+	const pkgPath = await escalade(cwd(), (dir, files) => {
+		return files.find((file) => file === "package.json");
+	});
+	if (!pkgPath) {
+		throw new Error("No package.json found");
+	}
+	return pkgPath;
+}
+
 export async function getPackageJSON() {
 	const pkg = await escalade(cwd(), (dir, files) => {
 		return files.find((file) => file === "package.json");

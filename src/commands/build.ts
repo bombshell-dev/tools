@@ -5,6 +5,7 @@ import { getPackageJSON } from "../utils.ts";
 
 export async function build(ctx: CommandContext) {
 	const { dependencies = {} } = await getPackageJSON();
+	console.log('build');
 	await rm("dist", { recursive: true, force: true });
 	await esbuild({
 		entryPoints: ["src/*", "src/**/*"],
@@ -15,7 +16,7 @@ export async function build(ctx: CommandContext) {
 		sourcemap: true,
 		treeShaking: true,
 		target: "node20",
-		minify: true,
+		minify: false,
 		bundle: true,
 		external: [
 			"node:*",
@@ -36,6 +37,17 @@ function ts(): Plugin {
 		setup(build) {
 			build.onResolve({ filter: /\.tsx?$/ }, (args) => {
 				return { path: args.path.replace(/\.tsx?$/, ".js"), external: true };
+			});
+		},
+	};
+}
+
+function imports(): Plugin {
+	return {
+		name: "imports",
+		setup(build) {
+			build.onResolve({ filter: /^#clink/ }, (args) => {
+				return { path: args.path.replace(/^#/, ""), external: true };
 			});
 		},
 	};
