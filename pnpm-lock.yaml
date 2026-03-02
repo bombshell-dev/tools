@@ -15,22 +15,22 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       oxfmt:
-        specifier: latest
+        specifier: ^0.36.0
         version: 0.36.0
       oxlint:
-        specifier: latest
+        specifier: ^1.51.0
         version: 1.51.0
       publint:
-        specifier: latest
+        specifier: ^0.3.18
         version: 0.3.18
       tinyexec:
         specifier: ^1.0.1
         version: 1.0.1
       tsdown:
-        specifier: latest
+        specifier: ^0.21.0-beta.2
         version: 0.21.0-beta.2(publint@0.3.18)
       vitest:
-        specifier: latest
+        specifier: ^4.0.18
         version: 4.0.18(@types/node@22.13.14)
     devDependencies:
       '@changesets/cli':
