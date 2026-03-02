@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.1.0
+
+### Minor Changes
+
+- cf9b4c3: Updates commands to use the oxfmt, oxlint, publint, tsdown, vitest
+
 ## 0.0.8
 
 ### Patch Changes
