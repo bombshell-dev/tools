@@ -1,11 +1,12 @@
+import { fileURLToPath } from "node:url";
 import { x } from "tinyexec";
 import type { CommandContext } from "../context.ts";
 import { local } from "../utils.ts";
 
-// standardized `format` command, runs `@biomejs/biome` and fixes formatting
+const config = fileURLToPath(new URL("../../oxfmtrc.json", import.meta.url));
+
 export async function format(ctx: CommandContext) {
-	console.log("Formatting with Biome");
-	const stdio = x(local("biome"), ["check", "--write", "./src"]);
+	const stdio = x(local("oxfmt"), ["-c", config, "./src", ...ctx.args]);
 
 	for await (const line of stdio) {
 		console.log(line);

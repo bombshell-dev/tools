@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { argv } from "node:process";
 import { build } from "./commands/build.ts";
 import { dev } from "./commands/dev.ts";
@@ -12,9 +13,7 @@ async function main() {
 	const [command, ...args] = argv.slice(2);
 
 	if (!command) {
-		console.log(
-			`No command provided. Available commands: ${Object.keys(commands).join(", ")}\n`,
-		);
+		console.log(`No command provided. Available commands: ${Object.keys(commands).join(", ")}\n`);
 		return;
 	}
 

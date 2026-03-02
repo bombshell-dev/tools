@@ -4,7 +4,7 @@
     "type": "module",
     "license": "MIT",
     "bin": {
-        "bsh": "dist/bin.js"
+        "bsh": "dist/bin.mjs"
     },
     "description": "The internal dev, build, and lint CLI for Bombshell projects",
     "keywords": [
@@ -27,7 +27,7 @@
     },
     "exports": {
         ".": {
-            "import": "./dist/bin.js"
+            "import": "./dist/bin.mjs"
         },
         "./*": "./dist/*",
         "./package.json": "./package.json",
@@ -47,19 +47,18 @@
         "@types/node": "^22.13.14"
     },
     "dependencies": {
-        "@biomejs/biome": "^1.9.4",
         "@bomb.sh/args": "^0.3.1",
-        "esbuild": "^0.25.1",
         "escalade": "^3.2.0",
-        "tinyexec": "^1.0.1"
+        "oxfmt": "^0.36.0",
+        "oxlint": "^1.51.0",
+        "publint": "^0.3.18",
+        "tinyexec": "^1.0.1",
+        "tsdown": "^0.21.0-beta.2",
+        "vitest": "^4.0.18"
     },
     "packageManager": "pnpm@10.4.0",
     "volta": {
         "node": "22.14.0"
     },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "esbuild"
-        ]
-    }
+    "pnpm": {}
 }

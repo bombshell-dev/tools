@@ -1,6 +1,11 @@
+import { x } from "tinyexec";
 import type { CommandContext } from "../context.ts";
+import { local } from "../utils.ts";
 
-// standardized `test` command, shells out to `node test --strip-types`
 export async function test(ctx: CommandContext) {
-	console.log("TODO");
+	const stdio = x(local("vitest"), ["run", ...ctx.args]);
+
+	for await (const line of stdio) {
+		console.log(line);
+	}
 }

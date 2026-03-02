@@ -9,11 +9,7 @@ export async function init(ctx: CommandContext) {
 	const [_name = "."] = ctx.args;
 	const name = _name === "." ? dirname(cwd()) : _name;
 	const dest = new URL("./.temp/", pathToFileURL([cwd(), sep].join("")));
-	for await (const line of x("pnpx", [
-		"giget@latest",
-		"gh:bombshell-dev/template",
-		name,
-	])) {
+	for await (const line of x("pnpx", ["giget@latest", "gh:bombshell-dev/template", name])) {
 		console.log(line);
 	}
 
@@ -30,9 +26,7 @@ export async function init(ctx: CommandContext) {
 
 async function postprocess(
 	file: URL,
-	transform: (
-		contents: string,
-	) => string | undefined | Promise<string | undefined>,
+	transform: (contents: string) => string | undefined | Promise<string | undefined>,
 ) {
 	const contents = await readFile(file, { encoding: "utf8" });
 	const result = await transform(contents);
