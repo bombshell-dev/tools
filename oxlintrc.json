@@ -1,0 +1,36 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["unicorn", "typescript", "oxc", "import", "node"],
+	"jsPlugins": ["./rules/plugin.js"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "warn"
+	},
+	"rules": {
+		"no-restricted-imports": [
+			"error",
+			{
+				"paths": [
+					{
+						"name": "node:path",
+						"message": "Use File URLs (new URL()) instead. Only use fileURLToPath() at third-party module boundaries."
+					},
+					{
+						"name": "path",
+						"message": "Use File URLs (new URL()) instead. Only use fileURLToPath() at third-party module boundaries."
+					},
+					{
+						"name": "node:path/posix",
+						"message": "Use File URLs (new URL()) instead."
+					},
+					{
+						"name": "node:path/win32",
+						"message": "Use File URLs (new URL()) instead."
+					}
+				]
+			}
+		],
+		"import/no-commonjs": "error",
+		"node/no-path-concat": "error"
+	}
+}

@@ -1,9 +1,12 @@
+import { fileURLToPath } from "node:url";
 import { x } from "tinyexec";
 import type { CommandContext } from "../context.ts";
 import { local } from "../utils.ts";
 
+const config = fileURLToPath(new URL("../../oxlintrc.json", import.meta.url));
+
 export async function lint(ctx: CommandContext) {
-	const oxlint = x(local("oxlint"), ["./src", ...ctx.args]);
+	const oxlint = x(local("oxlint"), ["-c", config, "./src", ...ctx.args]);
 
 	for await (const line of oxlint) {
 		console.log(line);
