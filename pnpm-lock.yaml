@@ -8,12 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@bomb.sh/args':
-        specifier: ^0.3.1
-        version: 0.3.1
-      escalade:
-        specifier: ^3.2.0
-        version: 3.2.0
       oxfmt:
         specifier: ^0.36.0
         version: 0.36.0
@@ -23,9 +17,6 @@ importers:
       publint:
         specifier: ^0.3.18
         version: 0.3.18
-      tinyexec:
-        specifier: ^1.0.1
-        version: 1.0.1
       tsdown:
         specifier: ^0.21.0-beta.2
         version: 0.21.0-beta.2(publint@0.3.18)
@@ -39,6 +30,9 @@ importers:
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
+      clink:
+        specifier: link:../clink/packages/clink
+        version: link:../clink/packages/clink
 
 packages:
 
@@ -66,9 +60,6 @@ packages:
   '@babel/types@8.0.0-rc.2':
     resolution: {integrity: sha512-91gAaWRznDwSX4E2tZ1YjBuIfnQVOFDCQ2r0Toby0gu4XEbyF623kXLMA8d4ZbCu+fINcrudkmEcwSUHgDDkNw==}
     engines: {node: ^20.19.0 || >=22.12.0}
-
-  '@bomb.sh/args@0.3.1':
-    resolution: {integrity: sha512-CwxKrfgcorUPP6KfYD59aRdBYWBTsfsxT+GmoLVnKo5Tmyoqbpo0UNcjngRMyU+6tiPbd18RuIYxhgAn44wU/Q==}
 
   '@changesets/apply-release-plan@7.0.10':
     resolution: {integrity: sha512-wNyeIJ3yDsVspYvHnEz1xQDq18D9ifed3lI+wxRQRK4pArUcuHgCTrHv0QRnnwjhVCQACxZ+CBih3wgOct6UXw==}
@@ -913,10 +904,6 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  escalade@3.2.0:
-    resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
-    engines: {node: '>=6'}
-
   esprima@4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
@@ -1289,9 +1276,6 @@ packages:
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
-  tinyexec@1.0.1:
-    resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
-
   tinyexec@1.0.2:
     resolution: {integrity: sha512-W/KYk+NFhkmsYpuHq5JykngiOCnxeVL8v8dFnqxSD8qEEdRfXk1SDM6JzNqcERbcGYj9tMrDQBYV9cjgnunFIg==}
     engines: {node: '>=18'}
@@ -1479,8 +1463,6 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 8.0.0-rc.2
       '@babel/helper-validator-identifier': 8.0.0-rc.2
-
-  '@bomb.sh/args@0.3.1': {}
 
   '@changesets/apply-release-plan@7.0.10':
     dependencies:
@@ -2162,8 +2144,6 @@ snapshots:
       '@esbuild/win32-ia32': 0.27.3
       '@esbuild/win32-x64': 0.27.3
 
-  escalade@3.2.0: {}
-
   esprima@4.0.1: {}
 
   estree-walker@3.0.3:
@@ -2538,8 +2518,6 @@ snapshots:
   term-size@2.2.1: {}
 
   tinybench@2.9.0: {}
-
-  tinyexec@1.0.1: {}
 
   tinyexec@1.0.2: {}
 

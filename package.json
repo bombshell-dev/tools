@@ -4,7 +4,7 @@
     "type": "module",
     "license": "MIT",
     "bin": {
-        "bsh": "dist/bin.mjs"
+        "bsh": "dist/bin.js"
     },
     "description": "The internal dev, build, and lint CLI for Bombshell projects",
     "keywords": [
@@ -26,17 +26,14 @@
         "access": "public"
     },
     "exports": {
-        ".": {
-            "import": "./dist/bin.mjs"
-        },
         "./*": "./dist/*",
         "./package.json": "./package.json",
         "./tsconfig.json": "./tsconfig.json"
     },
     "scripts": {
-        "bsh": "node --experimental-strip-types --no-warnings ./src/bin.ts",
+        "bsh": "clink exec",
         "dev": "pnpm run bsh dev",
-        "build": "pnpm run bsh build",
+        "build": "clink build",
         "format": "pnpm run bsh format",
         "init": "pnpm run bsh init",
         "lint": "pnpm run bsh lint",
@@ -44,15 +41,13 @@
     },
     "devDependencies": {
         "@changesets/cli": "^2.28.1",
-        "@types/node": "^22.13.14"
+        "@types/node": "^22.13.14",
+        "clink": "link:../clink/packages/clink"
     },
     "dependencies": {
-        "@bomb.sh/args": "^0.3.1",
-        "escalade": "^3.2.0",
         "oxfmt": "^0.36.0",
         "oxlint": "^1.51.0",
         "publint": "^0.3.18",
-        "tinyexec": "^1.0.1",
         "tsdown": "^0.21.0-beta.2",
         "vitest": "^4.0.18"
     },

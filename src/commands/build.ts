@@ -1,20 +1,20 @@
-import { x } from "tinyexec";
-import type { CommandContext } from "../context.ts";
-import { local } from "../utils.ts";
+import { defineCommand } from "clink";
 
-export async function build(ctx: CommandContext) {
-	const stdio = x(local("tsdown"), [
-		"src/bin.ts",
-		"--format",
-		"esm",
-		"--sourcemap",
-		"--clean",
-		"--unbundle",
-		"--no-config",
-		...ctx.args,
-	]);
-
-	for await (const line of stdio) {
-		console.log(line);
-	}
-}
+export default defineCommand({
+	async handler({ tools, remaining }) {
+		await tools.exec.runOrThrow(
+			"tsdown",
+			[
+				"src/bin.ts",
+				"--format",
+				"esm",
+				"--sourcemap",
+				"--clean",
+				"--unbundle",
+				"--no-config",
+				...remaining,
+			],
+			{ stdio: "inherit" },
+		);
+	},
+});
