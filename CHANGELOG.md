@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.0
+
+### Minor Changes
+
+- 5f43969: Add default lint rules with oxlint
+
 ## 0.1.0
 
 ### Minor Changes
