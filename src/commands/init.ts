@@ -7,7 +7,8 @@ import type { CommandContext } from "../context.ts";
 export async function init(ctx: CommandContext) {
 	const [_name = "."] = ctx.args;
 	const cwdUrl = pathToFileURL(`${cwd()}/`);
-	const name = _name === "." ? new URL("../", cwdUrl).pathname.split("/").filter(Boolean).pop()! : _name;
+	const name =
+		_name === "." ? new URL("../", cwdUrl).pathname.split("/").filter(Boolean).pop()! : _name;
 	const dest = new URL("./.temp/", cwdUrl);
 	for await (const line of x("pnpx", ["giget@latest", "gh:bombshell-dev/template", name])) {
 		console.log(line);
