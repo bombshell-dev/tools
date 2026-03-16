@@ -9,5 +9,5 @@ If you'd like to use this package for your own projects, please consider forking
 - `bsh build` command, using [`tsdown`](https://tsdown.dev/) (ESM, unbundled)
 - `bsh test` command, using [`vitest`](https://vitest.dev/)
 - `bsh format` command, using [`oxfmt`](https://oxc.rs/docs/guide/usage/formatter)
-- `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter) and [`publint`](https://publint.dev/)
+- `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter), [`publint`](https://publint.dev/), [`knip`](https://knip.dev), [`tsgo`](https://npmx.dev/@typescript/native-preview)
 - shared `tsconfig.json` file
