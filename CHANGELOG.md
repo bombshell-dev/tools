@@ -1,5 +1,12 @@
 # @bomb.sh/tools
 
+## 0.2.0
+
+### Minor Changes
+
+- 5f43969: Implements `lint` command using `oxlint`, `tsgo`, `knip`, and `publint`
+- c3f801b: Adds `build` command which uses `tsdown`. Default uses `--unbundle`, but pass `--bundle` to create single files.
+
 ## 0.1.0
 
 ### Minor Changes
