@@ -1,27 +1,20 @@
 import { parse } from "@bomb.sh/args";
-import { x } from "tinyexec";
+import { build as tsdown } from "tsdown";
 import type { CommandContext } from "../context.ts";
-import { local } from "../utils.ts";
 
 export async function build(ctx: CommandContext) {
-	const args = parse(ctx.args, {
-		boolean: ["bundle"],
-	});
+  const args = parse(ctx.args, {
+    boolean: ["bundle"],
+  });
 
-	const tsdownArgs = [
-		"src/bin.ts",
-		"--format",
-		"esm",
-		"--sourcemap",
-		"--clean",
-		"--no-config",
-		...args._.map((v) => v.toString()),
-	];
-	if (!args.bundle) tsdownArgs.push("--unbundle");
+  const entry = args._.length > 0 ? args._.map(String) : ["src"];
 
-	const stdio = x(local("tsdown"), tsdownArgs);
-
-	for await (const line of stdio) {
-		console.log(line);
-	}
+  await tsdown({
+    config: false,
+    entry,
+    format: "esm",
+    sourcemap: true,
+    clean: true,
+    unbundle: !args.bundle,
+  });
 }
