@@ -2,4 +2,4 @@
 "@bomb.sh/tools": minor
 ---
 
-Add default lint rules with oxlint
+Implements `lint` command using `oxlint`, `tsgo`, `knip`, and `publint`

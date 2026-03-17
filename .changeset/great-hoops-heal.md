@@ -1,5 +1,5 @@
 ---
-"@bomb.sh/tools": patch
+"@bomb.sh/tools": minor
 ---
 
-Adds `--bundle` flag to `build` command (default is tsdown's `unbundle` behavior
+Adds `build` command which uses `tsdown`. Default uses `--unbundle`, but pass `--bundle` to create single files.
