@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.1
+
+### Patch Changes
+
+- 61c3763: Updates `tsdown` entrypoint (defaults to `src`)
+
 ## 0.2.0
 
 ### Minor Changes
