@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.2
+
+### Patch Changes
+
+- ccb63b7: Adds `--dts` and `--minify` flags to `build` command
+
 ## 0.2.1
 
 ### Patch Changes
