@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.3
+
+### Patch Changes
+
+- 9d2c754: Adds `@bomb.sh/tools/test-utils` export with `createFixture()`
+
 ## 0.2.2
 
 ### Patch Changes
