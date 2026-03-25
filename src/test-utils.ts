@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { NodeHfs } from "@humanfs/node";
-import { type HfsImpl } from "@humanfs/types";
+import type { HfsImpl } from "@humanfs/types";
 import { expect, onTestFinished } from "vitest";
 
 interface ScopedHfsImpl extends HfsImpl {
