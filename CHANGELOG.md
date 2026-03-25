@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.6
+
+### Patch Changes
+
+- 0eeee28: Adds support for nested object syntax, dynamic file creation, and better fs bindings to createFixture
+
 ## 0.2.5
 
 ### Patch Changes
