@@ -1,6 +1,6 @@
 {
   "name": "@bomb.sh/tools",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "The internal dev, build, and lint CLI for Bombshell projects",
   "keywords": [
     "bombshell",
@@ -40,7 +40,7 @@
   "scripts": {
     "bsh": "node --experimental-strip-types --no-warnings ./src/bin.ts",
     "dev": "pnpm run bsh dev",
-    "build": "pnpm run bsh build",
+    "build": "pnpm run bsh build --dts",
     "format": "pnpm run bsh format",
     "init": "pnpm run bsh init",
     "lint": "pnpm run bsh lint",
