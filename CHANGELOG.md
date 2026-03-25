@@ -1,5 +1,12 @@
 # @bomb.sh/tools
 
+## 0.2.5
+
+### Patch Changes
+
+- 0945a18: Allows strongly typed `.json` files in fixtures
+- 0945a18: Use current test name as a prefix for tmpdir in fixture
+
 ## 0.2.4
 
 ### Patch Changes
