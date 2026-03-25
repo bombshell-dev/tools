@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.2.7
+
+### Patch Changes
+
+- Removes type-only import from bundle
+
 ## 0.2.6
 
 ### Patch Changes
