@@ -6,39 +6,39 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { onTestFinished } from "vitest";
 
 export interface Fixture {
-  root: URL;
-  resolve: (...segments: string[]) => URL;
-  readFile: (file: PathLike) => Promise<string>;
-  cleanup: () => Promise<void>;
+	root: URL;
+	resolve: (...segments: string[]) => URL;
+	readFile: (file: PathLike) => Promise<string>;
+	cleanup: () => Promise<void>;
 }
 
 export async function createFixture(files: Record<string, string>): Promise<Fixture> {
-  const root = new URL(`bsh-`, `file://${tmpdir()}/`);
-  const path = await mkdtemp(fileURLToPath(root));
-  const base = pathToFileURL(path + sep);
+	const root = new URL(`bsh-`, `file://${tmpdir()}/`);
+	const path = await mkdtemp(fileURLToPath(root));
+	const base = pathToFileURL(path + sep);
 
-  for (const [name, content] of Object.entries(files)) {
-    const url = new URL(name, base);
-    const dir = new URL("./", url);
-    await mkdir(dir, { recursive: true });
-    if (name.endsWith(".json") && typeof content !== "string") {
-      await writeFile(url, JSON.stringify(content, null, 2), "utf8");
-    } else {
-      await writeFile(url, content, "utf8");
-    }
-  }
+	for (const [name, content] of Object.entries(files)) {
+		const url = new URL(name, base);
+		const dir = new URL("./", url);
+		await mkdir(dir, { recursive: true });
+		if (name.endsWith(".json") && typeof content !== "string") {
+			await writeFile(url, JSON.stringify(content, null, 2), "utf8");
+		} else {
+			await writeFile(url, content, "utf8");
+		}
+	}
 
-  const cleanup = () => rm(path, { recursive: true, force: true });
-  onTestFinished(cleanup);
+	const cleanup = () => rm(path, { recursive: true, force: true });
+	onTestFinished(cleanup);
 
-  const resolve = (...segments: string[]) => new URL(`./${segments.join("/")}`, base);
-  const readFile = (file: PathLike) =>
-    fsReadFile(new URL(`./${file}`, base), { encoding: "utf-8" });
+	const resolve = (...segments: string[]) => new URL(`./${segments.join("/")}`, base);
+	const readFile = (file: PathLike) =>
+		fsReadFile(new URL(`./${file}`, base), { encoding: "utf-8" });
 
-  return {
-    root: pathToFileURL(path),
-    resolve,
-    readFile,
-    cleanup,
-  };
+	return {
+		root: pathToFileURL(path),
+		resolve,
+		readFile,
+		cleanup,
+	};
 }
