@@ -1,5 +1,6 @@
 ---
-description: "Format code with oxfmt. Run with `pnpm run format`."
+name: format
+description: "Use when formatting source files or checking code style."
 ---
 
 # Format

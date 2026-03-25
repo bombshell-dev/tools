@@ -1,5 +1,6 @@
 ---
-description: "Run tests with vitest. Run with `pnpm run test`."
+name: test
+description: "Use when running tests, writing new tests, or debugging test failures."
 ---
 
 # Test
@@ -10,6 +11,21 @@ Runs the test suite using vitest in non-watch mode.
 
 ```sh
 pnpm run test
+```
+
+## Test File Conventions
+
+- **Colocate tests with source** — next to the code they test, never in `__tests__/` or `test/`
+- **`.test.ts`** suffix for runtime tests
+- **`.test-d.ts`** suffix for type-level tests (compile-time assertions only)
+
+```
+src/
+  framework/
+    schema.ts
+    schema.test.ts
+    params.ts
+    params.test-d.ts
 ```
 
 ## How It Works

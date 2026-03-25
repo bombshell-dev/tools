@@ -1,5 +1,6 @@
 ---
-description: "Scaffold a new Bombshell project from template. Run with `pnpm run init`."
+name: init
+description: "Use when creating a new Bombshell project or package from the template."
 ---
 
 # Init

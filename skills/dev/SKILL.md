@@ -1,5 +1,6 @@
 ---
-description: "Run a dev watcher for TypeScript files. Run with `pnpm run dev`."
+name: dev
+description: "Use when running a TypeScript file in watch mode during development."
 ---
 
 # Dev

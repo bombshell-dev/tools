@@ -1,5 +1,6 @@
 ---
-description: "Run the full lint pipeline (oxlint, publint, knip, tsc). Run with `pnpm run lint`."
+name: lint
+description: "Use when checking for lint errors, type errors, unused exports, or package.json issues."
 ---
 
 # Lint

@@ -1,5 +1,6 @@
 ---
-description: "Build TypeScript modules. Run with `pnpm run build`."
+name: build
+description: "Use when compiling TypeScript to ESM, generating declaration files, or preparing a package for publish."
 ---
 
 # Build
