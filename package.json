@@ -48,6 +48,8 @@
   },
   "dependencies": {
     "@bomb.sh/args": "^0.3.1",
+    "@humanfs/node": "^0.16.7",
+    "@humanfs/types": "^0.15.0",
     "@typescript/native-preview": "7.0.0-dev.20260307.1",
     "knip": "^5.85.0",
     "oxfmt": "^0.36.0",
