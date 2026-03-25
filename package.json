@@ -26,6 +26,10 @@
     ".": {
       "import": "./dist/bin.mjs"
     },
+    "./test-utils": {
+      "types": "./dist/test-utils.d.mts",
+      "import": "./dist/test-utils.mjs"
+    },
     "./*": "./dist/*",
     "./package.json": "./package.json",
     "./tsconfig.json": "./tsconfig.json"
