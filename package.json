@@ -21,6 +21,14 @@
   "bin": {
     "bsh": "dist/bin.mjs"
   },
+  "files": [
+    "dist",
+    ".claude-plugin",
+    "tsconfig.json",
+    "package.json",
+    "oxfmtrc.json",
+    "oxlintrc.json"
+  ],
   "type": "module",
   "exports": {
     ".": {
