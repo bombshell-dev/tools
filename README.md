@@ -11,3 +11,7 @@ If you'd like to use this package for your own projects, please consider forking
 - `bsh format` command, using [`oxfmt`](https://oxc.rs/docs/guide/usage/formatter)
 - `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter), [`publint`](https://publint.dev/), [`knip`](https://knip.dev), [`tsgo`](https://npmx.dev/@typescript/native-preview)
 - shared `tsconfig.json` file
+
+## Agent Skills
+
+If you use an AI coding agent, run `pnpm add -D @bomb.sh/tools` then have your agent run `pnpm dlx @tanstack/intent@latest install` to load project-specific skills for `@bomb.sh/tools`.
