@@ -1,5 +1,13 @@
 # @bomb.sh/tools
 
+## 0.3.0
+
+### Minor Changes
+
+- df17b88: Adds skills for coding agents. Eight skills cover the full `bsh` toolchain — lifecycle, lint, build, test, format, dev, init, and migration for onboarding an existing project.
+
+  If you use an AI coding agent, run `pnpm add -D @bomb.sh/tools` then have your agent run `pnpm dlx @tanstack/intent@latest install` to load project-specific skills for `@bomb.sh/tools`.
+
 ## 0.2.8
 
 ### Patch Changes
