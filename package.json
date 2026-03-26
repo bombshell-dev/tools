@@ -5,7 +5,9 @@
   "keywords": [
     "bombshell",
     "cli",
-    "internal"
+    "internal",
+    "skills",
+    "tanstack-intent"
   ],
   "homepage": "https://bomb.sh",
   "license": "MIT",
@@ -21,11 +23,22 @@
   "bin": {
     "bsh": "dist/bin.mjs"
   },
+  "files": [
+    "dist",
+    "skills",
+    "!skills/_artifacts",
+    ".claude-plugin",
+    "tsconfig.json",
+    "package.json",
+    "oxfmtrc.json",
+    "oxlintrc.json"
+  ],
   "type": "module",
   "exports": {
     ".": {
       "import": "./dist/bin.mjs"
     },
+    "./skills/*": "./skills/*",
     "./test-utils": {
       "types": "./dist/test-utils.d.mts",
       "import": "./dist/test-utils.mjs"
@@ -61,6 +74,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",
+    "@tanstack/intent": "^0.0.23",
     "@types/node": "^22.13.14"
   },
   "volta": {
