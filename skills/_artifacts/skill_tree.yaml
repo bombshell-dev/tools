@@ -1,0 +1,138 @@
+# skills/_artifacts/skill_tree.yaml
+library:
+  name: '@bomb.sh/tools'
+  version: '0.2.8'
+  repository: 'https://github.com/bombshell-dev/tools'
+  description: 'Unified internal CLI (bsh) that standardizes dev workflows across Bombshell ecosystem projects.'
+generated_from:
+  domain_map: 'skills/_artifacts/domain_map.yaml'
+  skill_spec: 'skills/_artifacts/skill_spec.md'
+generated_at: '2026-03-25'
+
+skills:
+  - name: 'Development Lifecycle'
+    slug: 'lifecycle'
+    type: 'lifecycle'
+    domain: 'workflow'
+    path: 'skills/lifecycle/SKILL.md'
+    description: >
+      TDD-driven development workflow for Bombshell projects. Covers command ordering
+      (test→implement→lint→format→build→test), pnpm run as only entry point, monorepo
+      vs single-package detection, pnpm --filter for targeting packages. Use when
+      starting work on any Bombshell project.
+    requires: []
+    sources:
+      - 'bombshell-dev/tools:skills/lifecycle/SKILL.md'
+      - 'bombshell-dev/tools:src/bin.ts'
+
+  - name: 'Lint'
+    slug: 'lint'
+    type: 'core'
+    domain: 'quality'
+    path: 'skills/lint/SKILL.md'
+    description: >
+      Multi-tool linting pipeline: oxlint, publint, knip, tsgo in parallel. Covers
+      Bombshell coding conventions: URL over node:path, max 2 params, named exports
+      only, import type, prefer node builtins, no console.log. Use when checking code
+      quality or understanding lint rule violations.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/lint/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/lint.ts'
+      - 'bombshell-dev/tools:oxlintrc.json'
+    references:
+      - 'references/lint-rules.md'
+
+  - name: 'Build'
+    slug: 'build'
+    type: 'core'
+    domain: 'compilation'
+    path: 'skills/build/SKILL.md'
+    description: >
+      TypeScript to ESM compilation via tsdown with opinionated defaults. Covers
+      sourcemaps, clean dist/, unbundled output, --dts, --bundle, --minify flags.
+      Use when building a package for publish or generating declaration files.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/build/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/build.ts'
+
+  - name: 'Test'
+    slug: 'test'
+    type: 'core'
+    domain: 'testing'
+    path: 'skills/test/SKILL.md'
+    description: >
+      Vitest test runner with colocated .test.ts files and createFixture utility for
+      filesystem-based tests. Covers .test-d.ts type-level tests, inline fixture
+      declarations, fixture API (root, resolve, text, json, write, cleanup). Use when
+      writing or running tests.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/test/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/test.ts'
+      - 'bombshell-dev/tools:src/test-utils.ts'
+
+  - name: 'Format'
+    slug: 'format'
+    type: 'core'
+    domain: 'quality'
+    path: 'skills/format/SKILL.md'
+    description: >
+      Code formatting via oxfmt with project configuration. Tabs, single quotes,
+      semicolons always, trailing commas, 100-char line width. Use when formatting
+      source files.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/format/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/format.ts'
+      - 'bombshell-dev/tools:oxfmtrc.json'
+
+  - name: 'Dev'
+    slug: 'dev'
+    type: 'core'
+    domain: 'compilation'
+    path: 'skills/dev/SKILL.md'
+    description: >
+      Watch mode development using Node --experimental-transform-types. No transpiler
+      needed. Watches ./src/ directory, restarts on changes. Experimental — may switch
+      to tsdown dev mode. Use when running TypeScript in dev mode.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/dev/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/dev.ts'
+
+  - name: 'Init'
+    slug: 'init'
+    type: 'core'
+    domain: 'setup'
+    path: 'skills/init/SKILL.md'
+    description: >
+      Scaffold new Bombshell project from bombshell-dev/template via giget. Replaces
+      $name placeholder, outputs to .temp/. Use when creating a new package in the
+      Bombshell ecosystem.
+    requires: []
+    sources:
+      - 'bombshell-dev/tools:skills/init/SKILL.md'
+      - 'bombshell-dev/tools:src/commands/init.ts'
+
+  - name: 'Migrate'
+    slug: 'migrate'
+    type: 'lifecycle'
+    domain: 'setup'
+    path: 'skills/migrate/SKILL.md'
+    description: >
+      Migrate existing project to bsh toolchain. Covers removing prettier, biome,
+      eslint, tsup, unbuild, rollup configs and dependencies. Replacing scripts with
+      bsh equivalents. Consolidating to single @bomb.sh/tools devDependency. Migration
+      checklist: check existing → add unimplemented → replace 1:1 → evaluate → migrate
+      one by one. Use when onboarding a project to the Bombshell ecosystem.
+    requires:
+      - 'lifecycle'
+    sources:
+      - 'bombshell-dev/tools:skills/lifecycle/SKILL.md'
