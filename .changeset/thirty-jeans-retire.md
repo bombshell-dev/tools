@@ -2,6 +2,6 @@
 "@bomb.sh/tools": minor
 ---
 
-Adds TanStack Intent skills for coding agents. Eight skills cover the full `bsh` toolchain — lifecycle, lint, build, test, format, dev, init, and a new migration checklist for onboarding existing projects.
+Adds skills for coding agents. Eight skills cover the full `bsh` toolchain — lifecycle, lint, build, test, format, dev, init, and migration for onboarding an existing project.
 
-Skills are discoverable by running `npx @tanstack/intent@latest install`.
+If you use an AI coding agent, run `pnpm add -D @bomb.sh/tools` then have your agent run `pnpm dlx @tanstack/intent@latest install` to load project-specific skills for `@bomb.sh/tools`.
