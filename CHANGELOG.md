@@ -1,5 +1,12 @@
 # @bomb.sh/tools
 
+## 0.3.1
+
+### Patch Changes
+
+- ffba54e: Ignores colocated `*.test.ts` files in build
+- ffba54e: Adds automatic `vitest` config with `vitest-ansi-serializer`
+
 ## 0.3.0
 
 ### Minor Changes
