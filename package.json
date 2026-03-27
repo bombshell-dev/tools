@@ -40,8 +40,8 @@
     },
     "./skills/*": "./skills/*",
     "./test-utils": {
-      "types": "./dist/test-utils.d.mts",
-      "import": "./dist/test-utils.mjs"
+      "types": "./dist/test-utils/index.d.mts",
+      "import": "./dist/test-utils/index.mjs"
     },
     "./*": "./dist/*",
     "./package.json": "./package.json",
@@ -70,7 +70,8 @@
     "publint": "^0.3.18",
     "tinyexec": "^1.0.1",
     "tsdown": "^0.21.0-beta.2",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "vitest-ansi-serializer": "^0.2.1"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",

@@ -41,6 +41,9 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@22.13.14)(jiti@2.6.1)(yaml@2.8.3)
+      vitest-ansi-serializer:
+        specifier: ^0.2.1
+        version: 0.2.1(vitest@4.0.18(@types/node@22.13.14)(jiti@2.6.1)(yaml@2.8.3))
     devDependencies:
       '@changesets/cli':
         specifier: ^2.28.1
@@ -1621,6 +1624,11 @@ packages:
       yaml:
         optional: true
 
+  vitest-ansi-serializer@0.2.1:
+    resolution: {integrity: sha512-IC60vT8raDlHwk2tZAy9wfetJMJkVOGC50jyjcC1HTYBAYfJEXVeKe72Jd5Jzcw1Xt73Nri2cdE98p+K2mnDrA==}
+    peerDependencies:
+      vitest: ^3.0.0 || ^4.0.0
+
   vitest@4.0.18:
     resolution: {integrity: sha512-hOQuK7h0FGKgBAas7v0mSAsnvrIgAvWmRFjmzpJ7SwFHH3g1k2u37JtYwOwmEKhK6ZO3v9ggDBBm0La1LCK4uQ==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
@@ -3020,6 +3028,10 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.6.1
       yaml: 2.8.3
+
+  vitest-ansi-serializer@0.2.1(vitest@4.0.18(@types/node@22.13.14)(jiti@2.6.1)(yaml@2.8.3)):
+    dependencies:
+      vitest: 4.0.18(@types/node@22.13.14)(jiti@2.6.1)(yaml@2.8.3)
 
   vitest@4.0.18(@types/node@22.13.14)(jiti@2.6.1)(yaml@2.8.3):
     dependencies:
