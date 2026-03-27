@@ -7,8 +7,6 @@ export default defineConfig({
 		env: {
 			FORCE_COLOR: "1",
 		},
-		snapshotSerializers: [
-			fileURLToPath(import.meta.resolve("vitest-ansi-serializer")),
-		],
+		snapshotSerializers: [fileURLToPath(import.meta.resolve("vitest-ansi-serializer"))],
 	},
 });
