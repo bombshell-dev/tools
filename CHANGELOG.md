@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.3.2
+
+### Patch Changes
+
+- f716864: Fixes a bundling issue with test-utils
+
 ## 0.3.1
 
 ### Patch Changes
