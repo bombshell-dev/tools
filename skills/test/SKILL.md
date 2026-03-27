@@ -1,26 +1,29 @@
 ---
 name: test
 description: >
-  Vitest test runner with colocated .test.ts files and createFixture utility from
-  @bomb.sh/tools/test-utils. Covers .test-d.ts type-level tests, inline fixture
-  declarations, fixture API (root, resolve, text, json, write, isFile, isDirectory,
-  list, cleanup). Use when writing or running tests in Bombshell projects.
+  Vitest test runner with colocated .test.ts files and test utilities from
+  @bomb.sh/tools/test-utils. Covers createFixture (temp directories, inline file trees,
+  hfs API), createMocks (env stubbing, MockReadable/MockWritable streams, auto-cleanup),
+  .test-d.ts type-level tests, and auto-loaded vitest config. Use when writing or
+  running tests in Bombshell projects.
 metadata:
   type: core
   library: '@bomb.sh/tools'
-  library_version: '0.2.8'
+  library_version: '0.3.1'
   requires:
     - lifecycle
   sources:
     - 'bombshell-dev/tools:src/commands/test.ts'
-    - 'bombshell-dev/tools:src/test-utils.ts'
+    - 'bombshell-dev/tools:src/commands/test-utils/index.ts'
 ---
 
 # Test
 
-Vitest test runner with colocated test files and a filesystem fixture utility.
+Vitest test runner with colocated test files, filesystem fixtures, and mock utilities.
 
 ## Setup
+
+`bsh test` auto-loads its own vitest config — no `vitest.config.ts` needed in your project. The bundled config excludes `dist/`, sets `FORCE_COLOR=1`, and registers `vitest-ansi-serializer` for snapshot tests with ANSI output.
 
 Run the full test suite:
 
@@ -136,6 +139,59 @@ The `symlink` helper creates a symbolic link:
 }
 ```
 
+### createMocks
+
+Creates a mock test environment with streams and env vars. Cleanup is automatic via `onTestFinished` — no `beforeAll`/`afterAll` needed.
+
+```ts
+import { describe, it, expect, beforeEach } from "vitest";
+import { createMocks, type Mocks } from "@bomb.sh/tools/test-utils";
+
+describe("my-cli", () => {
+  let mocks: Mocks;
+  beforeEach(() => {
+    mocks = createMocks({
+      input: true,                            // MockReadable with defaults
+      output: { columns: 120, isTTY: true },  // MockWritable
+      env: { CI: "true", NO_COLOR: "1" },
+    });
+  });
+
+  it("writes output", () => {
+    render(mocks.input, mocks.output);
+    expect(mocks.output.buffer.join("")).toContain("hello");
+  });
+});
+```
+
+#### createMocks Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `env` | `Record<string, string \| undefined>` | Environment variables to stub for the test duration |
+| `input` | `true \| { isTTY?: boolean }` | Create a `MockReadable`. Pass `true` for defaults |
+| `output` | `true \| { columns?: number; rows?: number; isTTY?: boolean }` | Create a `MockWritable`. Defaults: 80×20, non-TTY |
+
+#### MockReadable
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `isTTY` | `boolean` | Whether the stream is a TTY |
+| `isRaw` | `boolean` | Whether raw mode is enabled |
+| `setRawMode()` | `() => void` | Enable raw mode |
+| `pushValue(val)` | `(val: unknown) => void` | Push a value to the readable buffer |
+| `close()` | `() => void` | Signal end of stream |
+
+#### MockWritable
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `buffer` | `string[]` | All written chunks as strings |
+| `isTTY` | `boolean` | Whether the stream is a TTY |
+| `columns` | `number` | Terminal width (default 80) |
+| `rows` | `number` | Terminal height (default 20) |
+| `resize(columns, rows)` | `(columns: number, rows: number) => void` | Resize and emit `"resize"` event |
+
 ### Type-Level Tests
 
 Files ending in `.test-d.ts` run compile-time type assertions using `expectTypeOf` from vitest. No runtime code executes — these tests verify that types resolve correctly.
@@ -247,6 +303,31 @@ it("produces valid output from config", async () => {
   const result = await processConfig(fixture.root);
   expect(result.entry).toBe("src/index.ts");
 });
+```
+
+### HIGH: Adding a vitest.config.ts
+
+`bsh test` provides its own config. A project-level `vitest.config.ts` shadows the bsh defaults (ANSI serialization, dist exclusion, FORCE_COLOR).
+
+```
+# Wrong
+vitest.config.ts exists in project root
+
+# Correct
+No vitest config — bsh handles it
+```
+
+### HIGH: Manual env/mock cleanup instead of createMocks
+
+Use `createMocks` instead of manual `vi.stubEnv`/`vi.unstubAllEnvs` patterns. It auto-cleans via `onTestFinished`.
+
+```ts
+// Wrong — manual lifecycle
+beforeEach(() => { vi.stubEnv("CI", "true"); });
+afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+
+// Correct
+beforeEach(() => { mocks = createMocks({ env: { CI: "true" } }); });
 ```
 
 ### HIGH: Running vitest directly
