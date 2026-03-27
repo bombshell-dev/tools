@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.3.3
+
+### Patch Changes
+
+- f9d1c06: Fixes `bsh test` config issue
+
 ## 0.3.2
 
 ### Patch Changes
