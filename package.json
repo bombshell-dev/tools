@@ -1,6 +1,6 @@
 {
   "name": "@bomb.sh/tools",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "The internal dev, build, and lint CLI for Bombshell projects",
   "keywords": [
     "bombshell",
