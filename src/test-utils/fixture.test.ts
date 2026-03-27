@@ -34,7 +34,7 @@ describe("createFixture", () => {
 	it("cleanup removes the temp directory", async () => {
 		const fixture = await createFixture({ "a.txt": "" });
 		const path = fixture.root;
-		expect(await fixture.isDirectory(fixture.root)).toBe(true);
+		expect(await fixture.isDirectory(".")).toBe(true);
 		await fixture.cleanup();
 		expect(existsSync(path)).toBe(false);
 	});

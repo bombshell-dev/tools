@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -6,6 +7,8 @@ export default defineConfig({
 		env: {
 			FORCE_COLOR: "1",
 		},
-		snapshotSerializers: ["vitest-ansi-serializer"],
+		snapshotSerializers: [
+			fileURLToPath(import.meta.resolve("vitest-ansi-serializer")),
+		],
 	},
 });

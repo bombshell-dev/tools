@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.3.4
+
+### Patch Changes
+
+- Fixes `vitest-ansi-serializer` resolution issue
+
 ## 0.3.3
 
 ### Patch Changes
