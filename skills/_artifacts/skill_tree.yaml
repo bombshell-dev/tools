@@ -1,13 +1,35 @@
 # skills/_artifacts/skill_tree.yaml
 library:
   name: '@bomb.sh/tools'
-  version: '0.2.8'
+  version: '0.3.1'
   repository: 'https://github.com/bombshell-dev/tools'
   description: 'Unified internal CLI (bsh) that standardizes dev workflows across Bombshell ecosystem projects.'
 generated_from:
   domain_map: 'skills/_artifacts/domain_map.yaml'
   skill_spec: 'skills/_artifacts/skill_spec.md'
-generated_at: '2026-03-25'
+generated_at: '2026-03-26'
+
+changelog:
+  from_version: '0.2.8'
+  changes:
+    - type: ADDITIVE
+      skill: test
+      description: >
+        test-utils expanded with createMocks, MockReadable, MockWritable, and Mocks type.
+        createFixture moved to src/commands/test-utils/fixture.ts (re-exported from same path).
+        Built-in vitest.config.ts added with FORCE_COLOR and vitest-ansi-serializer.
+        Resolves gap: "Clack has MockReadable/MockWritable — candidates for extraction."
+    - type: BEHAVIORAL
+      skill: test
+      description: >
+        bsh test now uses built-in vitest config (--config flag). Users no longer need
+        their own vitest.config.ts for standard usage. Config sets FORCE_COLOR=1 and
+        registers vitest-ansi-serializer for snapshot testing.
+    - type: BEHAVIORAL
+      skill: build
+      description: >
+        Default entry glob changed from ["src/**/*.ts"] to ["src/**/*.ts", "!src/**/*.test.ts"].
+        Test files are now excluded from builds by default.
 
 skills:
   - name: 'Development Lifecycle'
@@ -24,6 +46,7 @@ skills:
     sources:
       - 'bombshell-dev/tools:skills/lifecycle/SKILL.md'
       - 'bombshell-dev/tools:src/bin.ts'
+    status: 'current'
 
   - name: 'Lint'
     slug: 'lint'
@@ -43,6 +66,7 @@ skills:
       - 'bombshell-dev/tools:oxlintrc.json'
     references:
       - 'references/lint-rules.md'
+    status: 'current'
 
   - name: 'Build'
     slug: 'build'
@@ -52,12 +76,14 @@ skills:
     description: >
       TypeScript to ESM compilation via tsdown with opinionated defaults. Covers
       sourcemaps, clean dist/, unbundled output, --dts, --bundle, --minify flags.
-      Use when building a package for publish or generating declaration files.
+      Default entry excludes test files. Use when building a package for publish or
+      generating declaration files.
     requires:
       - 'lifecycle'
     sources:
       - 'bombshell-dev/tools:skills/build/SKILL.md'
       - 'bombshell-dev/tools:src/commands/build.ts'
+    status: 'current'
 
   - name: 'Test'
     slug: 'test'
@@ -65,16 +91,21 @@ skills:
     domain: 'testing'
     path: 'skills/test/SKILL.md'
     description: >
-      Vitest test runner with colocated .test.ts files and createFixture utility for
-      filesystem-based tests. Covers .test-d.ts type-level tests, inline fixture
-      declarations, fixture API (root, resolve, text, json, write, cleanup). Use when
-      writing or running tests.
+      Vitest test runner with colocated .test.ts files, createFixture for filesystem
+      tests, and createMocks for terminal I/O simulation. Covers .test-d.ts type-level
+      tests, inline fixture declarations, MockReadable/MockWritable for stream testing,
+      ANSI snapshot serializer, and built-in vitest config. Use when writing or running tests.
     requires:
       - 'lifecycle'
     sources:
       - 'bombshell-dev/tools:skills/test/SKILL.md'
       - 'bombshell-dev/tools:src/commands/test.ts'
-      - 'bombshell-dev/tools:src/test-utils.ts'
+      - 'bombshell-dev/tools:src/commands/test-utils/index.ts'
+      - 'bombshell-dev/tools:src/commands/test-utils/fixture.ts'
+      - 'bombshell-dev/tools:src/commands/test-utils/mock.ts'
+      - 'bombshell-dev/tools:src/commands/test-utils/stdio.ts'
+      - 'bombshell-dev/tools:src/commands/test-utils/vitest.config.ts'
+    status: 'current'
 
   - name: 'Format'
     slug: 'format'
@@ -91,6 +122,7 @@ skills:
       - 'bombshell-dev/tools:skills/format/SKILL.md'
       - 'bombshell-dev/tools:src/commands/format.ts'
       - 'bombshell-dev/tools:oxfmtrc.json'
+    status: 'current'
 
   - name: 'Dev'
     slug: 'dev'
@@ -106,6 +138,7 @@ skills:
     sources:
       - 'bombshell-dev/tools:skills/dev/SKILL.md'
       - 'bombshell-dev/tools:src/commands/dev.ts'
+    status: 'current'
 
   - name: 'Init'
     slug: 'init'
@@ -120,6 +153,7 @@ skills:
     sources:
       - 'bombshell-dev/tools:skills/init/SKILL.md'
       - 'bombshell-dev/tools:src/commands/init.ts'
+    status: 'current'
 
   - name: 'Migrate'
     slug: 'migrate'
@@ -130,9 +164,10 @@ skills:
       Migrate existing project to bsh toolchain. Covers removing prettier, biome,
       eslint, tsup, unbuild, rollup configs and dependencies. Replacing scripts with
       bsh equivalents. Consolidating to single @bomb.sh/tools devDependency. Migration
-      checklist: check existing → add unimplemented → replace 1:1 → evaluate → migrate
-      one by one. Use when onboarding a project to the Bombshell ecosystem.
+      checklist: check existing → add unimplemented commands → replace 1:1 → evaluate
+      remaining → migrate one by one. Use when onboarding a project to the Bombshell ecosystem.
     requires:
       - 'lifecycle'
     sources:
       - 'bombshell-dev/tools:skills/lifecycle/SKILL.md'
+    status: 'current'

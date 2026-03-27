@@ -8,7 +8,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@bomb.sh/tools'
-  library_version: '0.2.8'
+  library_version: '0.3.1'
   sources:
     - 'bombshell-dev/tools:skills/lifecycle/SKILL.md'
     - 'bombshell-dev/tools:src/bin.ts'

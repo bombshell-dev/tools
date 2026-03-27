@@ -9,7 +9,7 @@ description: >
 metadata:
   type: core
   library: '@bomb.sh/tools'
-  library_version: '0.2.8'
+  library_version: '0.3.1'
   requires:
     - lifecycle
   sources:
