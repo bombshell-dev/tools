@@ -6,8 +6,7 @@
     "bombshell",
     "cli",
     "internal",
-    "skills",
-    "tanstack-intent"
+    "skills"
   ],
   "homepage": "https://bomb.sh",
   "license": "MIT",
@@ -75,7 +74,6 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
-    "@tanstack/intent": "^0.0.27",
     "@types/node": "^22.19.15"
   },
   "volta": {
