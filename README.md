@@ -14,4 +14,4 @@ If you'd like to use this package for your own projects, please consider forking
 
 ## Agent Skills
 
-If you use an AI coding agent, run `pnpm add -D @bomb.sh/tools` then have your agent run `pnpm dlx @tanstack/intent@latest install` to load project-specific skills for `@bomb.sh/tools`.
+If you use an AI coding agent, run `pnpm bsh sync` to copy skill files into your project's `skills/` directory. Claude Code users: add `@AGENTS.md` to your project's `CLAUDE.md`.
