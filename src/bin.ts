@@ -5,9 +5,10 @@ import { dev } from "./commands/dev.ts";
 import { format } from "./commands/format.ts";
 import { init } from "./commands/init.ts";
 import { lint } from "./commands/lint.ts";
+import { sync } from "./commands/sync.ts";
 import { test } from "./commands/test.ts";
 
-const commands = { build, dev, format, init, lint, test };
+const commands = { build, dev, format, init, lint, sync, test };
 
 async function main() {
 	const [command, ...args] = argv.slice(2);
