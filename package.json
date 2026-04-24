@@ -64,7 +64,7 @@
     "@humanfs/node": "^0.16.7",
     "@humanfs/types": "^0.15.0",
     "@typescript/native-preview": "7.0.0-dev.20260307.1",
-    "knip": "^5.88.1",
+    "knip": "^6.6.2",
     "oxfmt": "^0.43.0",
     "oxlint": "^1.58.0",
     "publint": "^0.3.18",
