@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.4.0
+
+### Minor Changes
+
+- 06a1190: Updates `knip` dependency to v6
+
 ## 0.3.4
 
 ### Patch Changes
