@@ -25,9 +25,9 @@
   },
   "files": [
     "dist",
+    "rules",
     "skills",
     "!skills/_artifacts",
-    ".claude-plugin",
     "tsconfig.json",
     "package.json",
     "oxfmtrc.json",
