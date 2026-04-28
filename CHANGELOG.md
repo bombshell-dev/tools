@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.4.1
+
+### Patch Changes
+
+- 81cc9f1: Added "rules" to `package.json#files`
+
 ## 0.4.0
 
 ### Minor Changes
