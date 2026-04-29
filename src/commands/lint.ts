@@ -22,7 +22,7 @@ interface Violation {
 
 // -- Tool Runners --
 
-async function runOxlint(targets: string[], fix?: boolean): Promise<Violation[]> {
+export async function runOxlint(targets: string[], fix?: boolean): Promise<Violation[]> {
 	const args = ["-c", oxlintConfig, "--format=json", ...targets];
 	if (fix) args.push("--fix");
 	const result = await x(local("oxlint"), args, { throwOnError: false });
@@ -74,7 +74,7 @@ interface KnipJsonReport {
 	issues: KnipJsonIssue[];
 }
 
-async function runKnip(): Promise<Violation[]> {
+export async function runKnip(): Promise<Violation[]> {
 	const args = ["--no-progress", "--reporter", "json"];
 	const result = await x(local("knip"), args, { throwOnError: false });
 	if (!result.stdout.trim()) return [];

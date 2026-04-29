@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`lint command > runKnip > detects unused exports and unused files 1`] = `
+[
+  {
+    "code": "unused-file",
+    "column": undefined,
+    "file": "src/unused-file.ts",
+    "level": "warning",
+    "line": undefined,
+    "message": "Unused file",
+    "tool": "knip",
+  },
+  {
+    "code": "unused-export",
+    "column": 20,
+    "file": "src/used.ts",
+    "level": "warning",
+    "line": 3,
+    "message": "Unused export 'unusedExport'",
+    "tool": "knip",
+  },
+]
+`;
+
+exports[`lint command > runOxlint > detects violations in bad code 1`] = `
+[
+  {
+    "code": "eslint(no-unused-vars)",
+    "column": 5,
+    "file": "src/index.ts",
+    "level": "error",
+    "line": 1,
+    "message": "Variable 'x' is declared but never used. Unused variables should start with a '_'.",
+    "tool": "oxlint",
+  },
+  {
+    "code": "eslint(no-var)",
+    "column": 1,
+    "file": "src/index.ts",
+    "level": "error",
+    "line": 1,
+    "message": "Unexpected var, use let or const instead.",
+    "tool": "oxlint",
+  },
+]
+`;
