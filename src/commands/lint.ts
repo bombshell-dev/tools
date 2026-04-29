@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { parse } from "@bomb.sh/args";
 import { publint } from "publint";
 import { x } from "tinyexec";
-import type { ReporterOptions } from "knip";
+import type { JSONReport as KnipJSONReport } from "knip";
 import type { CommandContext } from "../context.ts";
 import { local } from "../utils.ts";
 
@@ -59,31 +59,16 @@ async function runPublint(): Promise<Violation[]> {
 	}));
 }
 
-type KnipCategory = keyof ReporterOptions["issues"];
-
-interface KnipJsonIssueItem {
-	name: string;
-	line?: number;
-	col?: number;
-	pos?: number;
-}
-
-type KnipJsonIssue = { file: string } & Record<KnipCategory, KnipJsonIssueItem[]>;
-
-interface KnipJsonReport {
-	issues: KnipJsonIssue[];
-}
-
 export async function runKnip(): Promise<Violation[]> {
 	const args = ["--no-progress", "--reporter", "json"];
 	const result = await x(local("knip"), args, { throwOnError: false });
 	if (!result.stdout.trim()) return [];
 
-	const json: KnipJsonReport = JSON.parse(result.stdout);
+	const json: KnipJSONReport = JSON.parse(result.stdout);
 	const violations: Violation[] = [];
 
 	for (const issue of json.issues) {
-		for (const dep of issue.dependencies) {
+		for (const dep of issue.dependencies ?? []) {
 			violations.push({
 				tool: "knip",
 				level: "warning",
@@ -94,7 +79,7 @@ export async function runKnip(): Promise<Violation[]> {
 				column: dep.col,
 			});
 		}
-		for (const dep of issue.devDependencies) {
+		for (const dep of issue.devDependencies ?? []) {
 			violations.push({
 				tool: "knip",
 				level: "warning",
@@ -105,7 +90,7 @@ export async function runKnip(): Promise<Violation[]> {
 				column: dep.col,
 			});
 		}
-		for (const exp of issue.exports) {
+		for (const exp of issue.exports ?? []) {
 			violations.push({
 				tool: "knip",
 				level: "warning",
@@ -116,7 +101,7 @@ export async function runKnip(): Promise<Violation[]> {
 				column: exp.col,
 			});
 		}
-		for (const t of issue.types) {
+		for (const t of issue.types ?? []) {
 			violations.push({
 				tool: "knip",
 				level: "warning",
@@ -127,7 +112,7 @@ export async function runKnip(): Promise<Violation[]> {
 				column: t.col,
 			});
 		}
-		for (const file of issue.files) {
+		for (const file of issue.files ?? []) {
 			violations.push({
 				tool: "knip",
 				level: "warning",
