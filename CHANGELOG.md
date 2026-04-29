@@ -1,5 +1,12 @@
 # @bomb.sh/tools
 
+## 0.4.2
+
+### Patch Changes
+
+- 747c189: - Fixes `runKnip` to correctly handle reported violations
+  - Updates `knip` dependency to `6.9.0`
+
 ## 0.4.1
 
 ### Patch Changes
