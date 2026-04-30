@@ -1,5 +1,6 @@
-import { mkdir, readdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
-import { relative } from "node:path";
+import type { Dirent } from "node:fs";
+import { mkdir, readdir, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
+import { isAbsolute, relative, resolve } from "node:path";
 import { cwd, platform } from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parse } from "ultramatter";
@@ -7,6 +8,8 @@ import type { CommandContext } from "../context.ts";
 
 const SENTINEL_START = "<!-- bsh:skills -->";
 const SENTINEL_END = "<!-- /bsh:skills -->";
+const GITIGNORE_START = "# bsh:skills";
+const GITIGNORE_END = "# /bsh:skills";
 
 export async function sync(_ctx: CommandContext): Promise<void> {
   const root = pathToFileURL(`${cwd()}/`);
@@ -38,17 +41,19 @@ async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInf
   const { source, dest } = options;
   const skills: SkillInfo[] = [];
   const entries = await readdir(source, { withFileTypes: true });
+  const keep = new Set<string>(
+    entries.filter((e) => e.isDirectory() && !e.name.startsWith("_")).map((e) => e.name),
+  );
 
   await mkdir(dest, { recursive: true });
+  await pruneStaleLinks({ dest, source, keep });
+
   const destDirPath = fileURLToPath(dest);
   const linkType = platform === "win32" ? "junction" : "dir";
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name.startsWith("_")) continue;
-
-    const srcDir = new URL(`${entry.name}/`, source);
-    const destDir = new URL(`${entry.name}/`, dest);
+  for (const name of keep) {
+    const srcDir = new URL(`${name}/`, source);
+    const destDir = new URL(`${name}/`, dest);
 
     await rm(destDir, { recursive: true, force: true });
 
@@ -68,6 +73,39 @@ async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInf
   return skills;
 }
 
+async function pruneStaleLinks(options: {
+  dest: URL;
+  source: URL;
+  keep: Set<string>;
+}): Promise<void> {
+  const { dest, source, keep } = options;
+  const destPath = fileURLToPath(dest);
+  const sourcePath = fileURLToPath(source);
+
+  let entries: Dirent[];
+  try {
+    entries = await readdir(dest, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isSymbolicLink()) continue;
+    if (keep.has(entry.name)) continue;
+
+    const linkPath = fileURLToPath(new URL(entry.name, dest));
+    try {
+      const target = await readlink(linkPath);
+      const absTarget = isAbsolute(target) ? target : resolve(destPath, target);
+      if (absTarget.startsWith(sourcePath)) {
+        await rm(linkPath, { recursive: true, force: true });
+      }
+    } catch {
+      // ignore unreadable links
+    }
+  }
+}
+
 async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
   const { root, skills } = options;
   const gitignorePath = new URL(".gitignore", root);
@@ -76,19 +114,20 @@ async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Pro
     content = await readFile(gitignorePath, "utf8");
   }
 
-  const missing: string[] = [];
-  for (const skill of skills) {
-    const entry = `skills/${skill.name}/`;
-    if (!content.includes(entry)) {
-      missing.push(entry);
-    }
+  const lines = skills.map((s) => `skills/${s.name}/`);
+  const section = [GITIGNORE_START, ...lines, GITIGNORE_END].join("\n");
+
+  const startIdx = content.indexOf(GITIGNORE_START);
+  const endIdx = content.indexOf(GITIGNORE_END);
+
+  if (startIdx !== -1 && endIdx !== -1) {
+    content = content.slice(0, startIdx) + section + content.slice(endIdx + GITIGNORE_END.length);
+  } else if (skills.length > 0) {
+    const suffix = content.endsWith("\n") || content === "" ? "" : "\n";
+    content = content + suffix + "\n" + section + "\n";
   }
 
-  if (missing.length === 0) return;
-
-  const suffix = content.endsWith("\n") || content === "" ? "" : "\n";
-  const section = `${suffix}\n# @bomb.sh/tools skills (synced)\n${missing.join("\n")}\n`;
-  await writeFile(gitignorePath, content + section, "utf8");
+  await writeFile(gitignorePath, content, "utf8");
 }
 
 async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
