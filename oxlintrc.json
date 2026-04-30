@@ -36,14 +36,38 @@
 		"unicorn/prefer-node-protocol": "error",
 		"typescript/consistent-type-imports": "error",
 		"no-console": ["warn", { "allow": ["info", "warn", "error", "debug"] }],
+		"no-underscore-dangle": [
+			"warn",
+			{
+				"allowAfterThis": true,
+				"allowAfterSuper": true,
+				"allowAfterThisConstructor": true,
+				"enforceInClassFields": false,
+				"enforceInMethodNames": false
+			}
+		],
 		"prefer-const": "error",
 		"no-var": "error",
-		"max-params": ["error", { "max": 2 }],
 		"typescript/explicit-function-return-type": ["warn", { "allowExpressions": true }],
 
 		"import/no-default-export": "error",
 		"bombshell-dev/no-generic-error": "error",
 		"bombshell-dev/require-export-jsdoc": "warn",
-		"bombshell-dev/exported-function-async": "warn"
-	}
+		"bombshell-dev/exported-function-async": "warn",
+		"bombshell-dev/max-params": ["error", { "max": 2 }]
+	},
+	"overrides": [
+		{
+			"files": ["**/*.cjs"],
+			"rules": {
+				"import/no-commonjs": "off"
+			}
+		},
+		{
+			"files": ["**/examples/**", "**/example/**"],
+			"rules": {
+				"no-console": "off"
+			}
+		}
+	]
 }

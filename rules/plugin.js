@@ -106,6 +106,66 @@ const plugin = {
 		},
 
 		/**
+		 * Cap parameters on authored functions, but skip callbacks whose
+		 * signatures are dictated by the receiving API (Array.prototype.map,
+		 * event listeners, Promise executors, third-party libs).
+		 *
+		 * Skips: function expressions / arrow functions passed as arguments
+		 * to a `CallExpression` or `NewExpression`.
+		 * Checks: function declarations, class methods, constructors, and
+		 * function expressions / arrows that aren't passed as arguments.
+		 *
+		 * Options: `{ max?: number }` — default 2.
+		 */
+		'max-params': {
+			meta: {
+				schema: [
+					{
+						type: 'object',
+						properties: {
+							max: { type: 'integer', minimum: 0 },
+						},
+						additionalProperties: false,
+					},
+				],
+			},
+			create(context) {
+				const max = context.options[0]?.max ?? 2;
+
+				function isCallbackArgument(node) {
+					const parent = node.parent;
+					if (!parent) return false;
+					if (parent.type !== 'CallExpression' && parent.type !== 'NewExpression') {
+						return false;
+					}
+					return parent.arguments.includes(node);
+				}
+
+				function check(node) {
+					if (
+						(node.type === 'FunctionExpression' ||
+							node.type === 'ArrowFunctionExpression') &&
+						isCallbackArgument(node)
+					) {
+						return;
+					}
+					if (node.params.length > max) {
+						context.report({
+							node,
+							message: `Functions should not have more than ${max} parameters (found ${node.params.length}). Authored APIs stay narrow; if this is a callback for a third-party API, the rule should have skipped it — file a bug.`,
+						});
+					}
+				}
+
+				return {
+					FunctionDeclaration: check,
+					FunctionExpression: check,
+					ArrowFunctionExpression: check,
+				};
+			},
+		},
+
+		/**
 		 * Require exported functions to be `async`.
 		 *
 		 * Public-facing functions should default to `async` to future-proof
@@ -115,8 +175,12 @@ const plugin = {
 		 * Ignores:
 		 *   - Non-exported functions
 		 *   - Class methods (checked separately if needed)
-		 *   - Functions that return explicit non-Promise types (type-level;
-		 *     this rule only checks the `async` keyword at the syntax level)
+		 *   - Functions with an explicit return type annotation. Annotating
+		 *     a return type is a deliberate signal that the function is sync
+		 *     by design — covers type predicates (`X is Y`, which can't be
+		 *     async), pure helpers (`: number`, `: string`), and already-
+		 *     shipped public APIs that can't be async-ified without a major
+		 *     bump. To opt back in, write `: Promise<T>` and `async`.
 		 */
 		'exported-function-async': {
 			create(context) {
@@ -133,10 +197,11 @@ const plugin = {
 					FunctionDeclaration(node) {
 						if (!isExported(node)) return;
 						if (node.async) return;
+						if (node.returnType) return;
 						const name = node.id?.name ?? 'anonymous';
 						context.report({
 							node,
-							message: `Exported function \`${name}\` should be \`async\`. Public APIs default to async to avoid breaking changes.`,
+							message: `Exported function \`${name}\` should be \`async\`, or annotate an explicit return type to opt out. Public APIs default to async to avoid breaking changes.`,
 						});
 					},
 				};
