@@ -48,12 +48,15 @@
 		],
 		"prefer-const": "error",
 		"no-var": "error",
-		"typescript/explicit-function-return-type": ["warn", { "allowExpressions": true }],
 
 		"import/no-default-export": "error",
 		"bombshell-dev/no-generic-error": "error",
 		"bombshell-dev/require-export-jsdoc": "warn",
+		"bombshell-dev/jsdoc-has-params": "warn",
 		"bombshell-dev/exported-function-async": "warn",
+		"bombshell-dev/exported-needs-return-type": "warn",
+		"bombshell-dev/exported-options-bag": "warn",
+		"bombshell-dev/no-let-at-module-scope": "warn",
 		"bombshell-dev/max-params": ["error", { "max": 2 }]
 	},
 	"overrides": [
