@@ -1,18 +1,18 @@
-import { fileURLToPath } from "node:url";
-import { parse } from "@bomb.sh/args";
-import { publint } from "publint";
-import { x } from "tinyexec";
-import type { JSONReport as KnipJSONReport } from "knip";
-import type { CommandContext } from "../context.ts";
-import { local } from "../utils.ts";
+import { fileURLToPath } from 'node:url';
+import { parse } from '@bomb.sh/args';
+import { publint } from 'publint';
+import { x } from 'tinyexec';
+import type { JSONReport as KnipJSONReport } from 'knip';
+import type { CommandContext } from '../context.ts';
+import { local } from '../utils.ts';
 
-const oxlintConfig = fileURLToPath(new URL("../../oxlintrc.json", import.meta.url));
+const oxlintConfig = fileURLToPath(new URL('../../oxlintrc.json', import.meta.url));
 
 // -- Types --
 
 interface Violation {
-	tool: "oxlint" | "publint" | "knip" | "tsc";
-	level: "error" | "warning" | "suggestion";
+	tool: 'oxlint' | 'publint' | 'knip' | 'tsc';
+	level: 'error' | 'warning' | 'suggestion';
 	code: string;
 	message: string;
 	file?: string;
@@ -23,9 +23,9 @@ interface Violation {
 // -- Tool Runners --
 
 export async function runOxlint(targets: string[], fix?: boolean): Promise<Violation[]> {
-	const args = ["-c", oxlintConfig, "--format=json", ...targets];
-	if (fix) args.push("--fix");
-	const result = await x(local("oxlint"), args, { throwOnError: false });
+	const args = ['-c', oxlintConfig, '--format=json', ...targets];
+	if (fix) args.push('--fix');
+	const result = await x(local('oxlint'), args, { throwOnError: false });
 	const json = JSON.parse(result.stdout);
 	return (json.diagnostics ?? []).map(
 		(d: {
@@ -35,9 +35,9 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 			filename?: string;
 			labels?: Array<{ span?: { line?: number; column?: number } }>;
 		}) => ({
-			tool: "oxlint" as const,
-			level: d.severity === "error" ? "error" : "warning",
-			code: d.code ?? "unknown",
+			tool: 'oxlint' as const,
+			level: d.severity === 'error' ? 'error' : 'warning',
+			code: d.code ?? 'unknown',
 			message: d.message,
 			file: d.filename,
 			line: d.labels?.[0]?.span?.line,
@@ -49,19 +49,19 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 async function runPublint(): Promise<Violation[]> {
 	const result = await publint({ strict: true });
 	return result.messages.map((m) => ({
-		tool: "publint" as const,
-		level: m.type === "error" ? "error" : m.type === "warning" ? "warning" : "suggestion",
+		tool: 'publint' as const,
+		level: m.type === 'error' ? 'error' : m.type === 'warning' ? 'warning' : 'suggestion',
 		code: m.code,
 		message: m.code,
-		file: "package.json",
+		file: 'package.json',
 		line: undefined,
 		column: undefined,
 	}));
 }
 
 export async function runKnip(): Promise<Violation[]> {
-	const args = ["--no-progress", "--reporter", "json"];
-	const result = await x(local("knip"), args, { throwOnError: false });
+	const args = ['--no-progress', '--reporter', 'json'];
+	const result = await x(local('knip'), args, { throwOnError: false });
 	if (!result.stdout.trim()) return [];
 
 	const json: KnipJSONReport = JSON.parse(result.stdout);
@@ -70,9 +70,9 @@ export async function runKnip(): Promise<Violation[]> {
 	for (const issue of json.issues) {
 		for (const dep of issue.dependencies ?? []) {
 			violations.push({
-				tool: "knip",
-				level: "warning",
-				code: "unused-dependency",
+				tool: 'knip',
+				level: 'warning',
+				code: 'unused-dependency',
 				message: `Unused dependency '${dep.name}'`,
 				file: issue.file,
 				line: dep.line,
@@ -81,9 +81,9 @@ export async function runKnip(): Promise<Violation[]> {
 		}
 		for (const dep of issue.devDependencies ?? []) {
 			violations.push({
-				tool: "knip",
-				level: "warning",
-				code: "unused-devDependency",
+				tool: 'knip',
+				level: 'warning',
+				code: 'unused-devDependency',
 				message: `Unused devDependency '${dep.name}'`,
 				file: issue.file,
 				line: dep.line,
@@ -92,9 +92,9 @@ export async function runKnip(): Promise<Violation[]> {
 		}
 		for (const exp of issue.exports ?? []) {
 			violations.push({
-				tool: "knip",
-				level: "warning",
-				code: "unused-export",
+				tool: 'knip',
+				level: 'warning',
+				code: 'unused-export',
 				message: `Unused export '${exp.name}'`,
 				file: issue.file,
 				line: exp.line,
@@ -103,9 +103,9 @@ export async function runKnip(): Promise<Violation[]> {
 		}
 		for (const t of issue.types ?? []) {
 			violations.push({
-				tool: "knip",
-				level: "warning",
-				code: "unused-type",
+				tool: 'knip',
+				level: 'warning',
+				code: 'unused-type',
 				message: `Unused type '${t.name}'`,
 				file: issue.file,
 				line: t.line,
@@ -114,9 +114,9 @@ export async function runKnip(): Promise<Violation[]> {
 		}
 		for (const file of issue.files ?? []) {
 			violations.push({
-				tool: "knip",
-				level: "warning",
-				code: "unused-file",
+				tool: 'knip',
+				level: 'warning',
+				code: 'unused-file',
 				message: `Unused file`,
 				file: issue.file,
 				line: file.line,
@@ -131,9 +131,9 @@ export async function runKnip(): Promise<Violation[]> {
 async function runTypeScript(targets: string[]): Promise<Violation[]> {
 	const args =
 		targets.length > 0
-			? ["--noEmit", "--pretty", "false", ...targets]
-			: ["--noEmit", "--pretty", "false"];
-	const result = await x(local("tsgo"), args, { throwOnError: false });
+			? ['--noEmit', '--pretty', 'false', ...targets]
+			: ['--noEmit', '--pretty', 'false'];
+	const result = await x(local('tsgo'), args, { throwOnError: false });
 	const output = result.stdout + result.stderr;
 	if (!output.trim()) return [];
 
@@ -142,8 +142,8 @@ async function runTypeScript(targets: string[]): Promise<Violation[]> {
 	let match: RegExpExecArray | null;
 	while ((match = re.exec(output)) !== null) {
 		violations.push({
-			tool: "tsc",
-			level: match[4] === "error" ? "error" : "warning",
+			tool: 'tsc',
+			level: match[4] === 'error' ? 'error' : 'warning',
 			code: match[5]!,
 			message: match[6]!,
 			file: match[1]!,
@@ -159,23 +159,23 @@ async function runTypeScript(targets: string[]): Promise<Violation[]> {
 function printViolations(violations: Violation[]) {
 	const grouped = new Map<string, Violation[]>();
 	for (const v of violations) {
-		const key = v.file ?? "(project)";
+		const key = v.file ?? '(project)';
 		if (!grouped.has(key)) grouped.set(key, []);
 		grouped.get(key)!.push(v);
 	}
 
 	const colors = {
-		error: "\x1b[31m",
-		warning: "\x1b[33m",
-		suggestion: "\x1b[34m",
-		dim: "\x1b[2m",
-		reset: "\x1b[0m",
+		error: '\x1b[31m',
+		warning: '\x1b[33m',
+		suggestion: '\x1b[34m',
+		dim: '\x1b[2m',
+		reset: '\x1b[0m',
 	};
 
 	for (const [file, items] of grouped) {
 		console.log(`\n${file}`);
 		for (const v of items) {
-			const loc = v.line != null ? `  ${v.line}:${v.column ?? 0}` : "  -";
+			const loc = v.line != null ? `  ${v.line}:${v.column ?? 0}` : '  -';
 			const color = colors[v.level];
 			const tag = `${v.tool}/${v.code}`;
 			console.log(
@@ -188,19 +188,19 @@ function printViolations(violations: Violation[]) {
 	for (const v of violations) counts[v.level]++;
 	const parts = [];
 	if (counts.error)
-		parts.push(`${colors.error}${counts.error} error${counts.error > 1 ? "s" : ""}${colors.reset}`);
+		parts.push(`${colors.error}${counts.error} error${counts.error > 1 ? 's' : ''}${colors.reset}`);
 	if (counts.warning)
 		parts.push(
-			`${colors.warning}${counts.warning} warning${counts.warning > 1 ? "s" : ""}${colors.reset}`,
+			`${colors.warning}${counts.warning} warning${counts.warning > 1 ? 's' : ''}${colors.reset}`,
 		);
 	if (counts.suggestion)
 		parts.push(
-			`${colors.suggestion}${counts.suggestion} suggestion${counts.suggestion > 1 ? "s" : ""}${colors.reset}`,
+			`${colors.suggestion}${counts.suggestion} suggestion${counts.suggestion > 1 ? 's' : ''}${colors.reset}`,
 		);
 	if (parts.length > 0) {
-		console.log(`\n${parts.join(", ")}`);
+		console.log(`\n${parts.join(', ')}`);
 	} else {
-		console.log("\nNo issues found.");
+		console.log('\nNo issues found.');
 	}
 }
 
@@ -216,7 +216,7 @@ async function collectViolations(targets: string[]): Promise<Violation[]> {
 
 	const violations: Violation[] = [];
 	for (const result of results) {
-		if (result.status === "fulfilled") {
+		if (result.status === 'fulfilled') {
 			violations.push(...result.value);
 		} else {
 			console.error(result.reason);
@@ -227,9 +227,9 @@ async function collectViolations(targets: string[]): Promise<Violation[]> {
 
 export async function lint(ctx: CommandContext) {
 	const args = parse(ctx.args, {
-		boolean: ["fix"],
+		boolean: ['fix'],
 	});
-	const targets = args._.length > 0 ? args._.map(String) : ["./src"];
+	const targets = args._.length > 0 ? args._.map(String) : ['./src'];
 
 	if (args.fix) {
 		await runOxlint(targets, true);
@@ -240,14 +240,14 @@ export async function lint(ctx: CommandContext) {
 			printViolations(remaining);
 			process.exit(1);
 		}
-		console.log("No issues found.");
+		console.log('No issues found.');
 		return;
 	}
 
 	// Default: report only
 	const violations = await collectViolations(targets);
 	printViolations(violations);
-	if (violations.some((v) => v.level === "error")) {
+	if (violations.some((v) => v.level === 'error')) {
 		process.exit(1);
 	}
 }
