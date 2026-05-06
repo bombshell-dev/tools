@@ -57,6 +57,7 @@
     "format": "pnpm run bsh format",
     "init": "pnpm run bsh init",
     "lint": "pnpm run bsh lint",
+    "publint": "pnpm run bsh publint",
     "test": "pnpm run bsh test"
   },
   "dependencies": {

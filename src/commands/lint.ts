@@ -1,6 +1,5 @@
 import { fileURLToPath } from 'node:url';
 import { parse } from '@bomb.sh/args';
-import { publint } from 'publint';
 import { x } from 'tinyexec';
 import type { JSONReport as KnipJSONReport } from 'knip';
 import type { CommandContext } from '../context.ts';
@@ -44,19 +43,6 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 			column: d.labels?.[0]?.span?.column,
 		}),
 	);
-}
-
-async function runPublint(): Promise<Violation[]> {
-	const result = await publint({ strict: true });
-	return result.messages.map((m) => ({
-		tool: 'publint' as const,
-		level: m.type === 'error' ? 'error' : m.type === 'warning' ? 'warning' : 'suggestion',
-		code: m.code,
-		message: m.code,
-		file: 'package.json',
-		line: undefined,
-		column: undefined,
-	}));
 }
 
 export async function runKnip(): Promise<Violation[]> {
@@ -156,7 +142,7 @@ async function runTypeScript(targets: string[]): Promise<Violation[]> {
 
 // -- Output --
 
-function printViolations(violations: Violation[]) {
+export function printViolations(violations: Violation[]) {
 	const grouped = new Map<string, Violation[]>();
 	for (const v of violations) {
 		const key = v.file ?? '(project)';
@@ -207,12 +193,7 @@ function printViolations(violations: Violation[]) {
 // -- Main --
 
 async function collectViolations(targets: string[]): Promise<Violation[]> {
-	const results = await Promise.allSettled([
-		runOxlint(targets),
-		runPublint(),
-		runKnip(),
-		runTypeScript(targets),
-	]);
+	const results = await Promise.allSettled([runOxlint(targets), runKnip(), runTypeScript(targets)]);
 
 	const violations: Violation[] = [];
 	for (const result of results) {
