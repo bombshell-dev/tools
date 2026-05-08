@@ -63,7 +63,10 @@ const plugin = {
 					const src = context.sourceCode.text;
 					let idx = node.start - 1;
 					// Walk backwards past whitespace
-					while (idx >= 0 && (src[idx] === ' ' || src[idx] === '\t' || src[idx] === '\n' || src[idx] === '\r')) {
+					while (
+						idx >= 0 &&
+						(src[idx] === ' ' || src[idx] === '\t' || src[idx] === '\n' || src[idx] === '\r')
+					) {
 						idx--;
 					}
 					// Check if preceding non-whitespace ends with */
@@ -82,8 +85,7 @@ const plugin = {
 					const parent = node.parent;
 					if (!parent) return false;
 					return (
-						parent.type === 'ExportNamedDeclaration' ||
-						parent.type === 'ExportDefaultDeclaration'
+						parent.type === 'ExportNamedDeclaration' || parent.type === 'ExportDefaultDeclaration'
 					);
 				}
 
@@ -124,8 +126,7 @@ const plugin = {
 					const parent = node.parent;
 					if (!parent) return false;
 					return (
-						parent.type === 'ExportNamedDeclaration' ||
-						parent.type === 'ExportDefaultDeclaration'
+						parent.type === 'ExportNamedDeclaration' || parent.type === 'ExportDefaultDeclaration'
 					);
 				}
 

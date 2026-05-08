@@ -1,10 +1,10 @@
-import { mkdtemp, symlink as fsSymlink } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { sep } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { NodeHfs } from "@humanfs/node";
-import type { HfsImpl } from "@humanfs/types";
-import { expect, onTestFinished } from "vitest";
+import { mkdtemp, symlink as fsSymlink } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { NodeHfs } from '@humanfs/node';
+import type { HfsImpl } from '@humanfs/types';
+import { expect, onTestFinished } from 'vitest';
 
 interface ScopedHfsImpl extends Required<HfsImpl> {
 	text(file: string | URL): Promise<string | undefined>;
@@ -54,7 +54,7 @@ export interface FileContext {
 	symlink: (target: string) => SymlinkMarker;
 }
 
-const SYMLINK = Symbol("symlink");
+const SYMLINK = Symbol('symlink');
 
 /** Opaque marker returned by `ctx.symlink()`. */
 export interface SymlinkMarker {
@@ -87,12 +87,12 @@ export interface FileTree {
 }
 
 function isSymlinkMarker(value: unknown): value is SymlinkMarker {
-	return typeof value === "object" && value !== null && SYMLINK in value;
+	return typeof value === 'object' && value !== null && SYMLINK in value;
 }
 
 function isFileTree(value: unknown): value is FileTree {
 	return (
-		typeof value === "object" &&
+		typeof value === 'object' &&
 		value !== null &&
 		!Buffer.isBuffer(value) &&
 		!Array.isArray(value) &&
@@ -148,18 +148,18 @@ function scopeHfs(inner: NodeHfs, base: URL): ScopedHfsImpl {
  * ```
  */
 export async function createFixture(files: FileTree): Promise<Fixture> {
-	const raw = expect.getState().currentTestName ?? "bsh";
+	const raw = expect.getState().currentTestName ?? 'bsh';
 	const prefix = raw
 		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-|-$/g, "");
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-|-$/g, '');
 	const root = new URL(`${prefix}-`, `file://${tmpdir()}/`);
 	const path = await mkdtemp(fileURLToPath(root));
 	const base = pathToFileURL(path + sep);
 
 	const inner = new NodeHfs();
 	const scoped = scopeHfs(inner, base);
-	const resolve = (...segments: string[]) => new URL(`./${segments.join("/")}`, base);
+	const resolve = (...segments: string[]) => new URL(`./${segments.join('/')}`, base);
 
 	const ctx: FileContext = {
 		importMeta: {
@@ -177,11 +177,11 @@ export async function createFixture(files: FileTree): Promise<Fixture> {
 
 			// Nested directory object (not a plain value)
 			if (
-				typeof raw !== "function" &&
+				typeof raw !== 'function' &&
 				!Buffer.isBuffer(raw) &&
 				!Array.isArray(raw) &&
 				isFileTree(raw) &&
-				!name.includes(".")
+				!name.includes('.')
 			) {
 				await inner.createDirectory(url);
 				// Trailing slash so nested entries resolve relative to the dir
@@ -190,11 +190,11 @@ export async function createFixture(files: FileTree): Promise<Fixture> {
 			}
 
 			// Ensure parent directory exists
-			const parent = new URL("./", url);
+			const parent = new URL('./', url);
 			await inner.createDirectory(parent);
 
 			// Resolve functions
-			const content = typeof raw === "function" ? raw(ctx) : raw;
+			const content = typeof raw === 'function' ? raw(ctx) : raw;
 
 			// Symlink
 			if (isSymlinkMarker(content)) {
@@ -209,7 +209,7 @@ export async function createFixture(files: FileTree): Promise<Fixture> {
 			}
 
 			// JSON auto-serialization for .json files with non-string content
-			if (name.endsWith(".json") && typeof content !== "string") {
+			if (name.endsWith('.json') && typeof content !== 'string') {
 				await inner.write(url, JSON.stringify(content, null, 2));
 				continue;
 			}

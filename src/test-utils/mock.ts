@@ -1,5 +1,5 @@
-import { onTestFinished, vi } from "vitest";
-import { MockReadable, MockWritable } from "./stdio.ts";
+import { onTestFinished, vi } from 'vitest';
+import { MockReadable, MockWritable } from './stdio.ts';
 
 type InputConfig = true | ConstructorParameters<typeof MockReadable>[0];
 type OutputConfig = true | ConstructorParameters<typeof MockWritable>[0];
@@ -14,8 +14,8 @@ export interface CreateMockOptions {
 }
 
 export type Mocks<O extends CreateMockOptions = CreateMockOptions> = {
-	input: O["input"] extends InputConfig ? MockReadable : undefined;
-	output: O["output"] extends OutputConfig ? MockWritable : undefined;
+	input: O['input'] extends InputConfig ? MockReadable : undefined;
+	output: O['output'] extends OutputConfig ? MockWritable : undefined;
 };
 
 /**
@@ -38,10 +38,10 @@ export type Mocks<O extends CreateMockOptions = CreateMockOptions> = {
 export function createMocks<O extends CreateMockOptions>(opts?: O): Mocks<O>;
 export function createMocks(opts: CreateMockOptions = {}): Mocks {
 	const input = opts.input
-		? new MockReadable(typeof opts.input === "object" ? opts.input : undefined)
+		? new MockReadable(typeof opts.input === 'object' ? opts.input : undefined)
 		: undefined;
 	const output = opts.output
-		? new MockWritable(typeof opts.output === "object" ? opts.output : undefined)
+		? new MockWritable(typeof opts.output === 'object' ? opts.output : undefined)
 		: undefined;
 	if (opts.env) {
 		for (const [key, value] of Object.entries(opts.env)) {

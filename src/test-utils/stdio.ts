@@ -1,4 +1,4 @@
-import { Readable, Writable, type ReadableOptions, type WritableOptions } from "node:stream";
+import { Readable, Writable, type ReadableOptions, type WritableOptions } from 'node:stream';
 
 export class MockReadable extends Readable {
 	protected _buffer: unknown[] | null = [];
@@ -54,7 +54,7 @@ export class MockWritable extends Writable {
 	public resize(columns: number, rows: number): void {
 		this.columns = columns;
 		this.rows = rows;
-		this.emit("resize");
+		this.emit('resize');
 	}
 
 	override _write(

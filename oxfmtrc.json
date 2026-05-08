@@ -1,3 +1,6 @@
 {
-	"useTabs": true
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"singleQuote": true,
+	"ignorePatterns": ["*.json", "*.md", "*.yml", "*.jsonc"]
 }
