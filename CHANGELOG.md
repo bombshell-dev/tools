@@ -1,5 +1,19 @@
 # @bomb.sh/tools
 
+## 0.5.0
+
+### Minor Changes
+
+- fe06180: Add `sync` command to automatically symlink skills to the local project
+- e3f5833: Updatess `oxfmt` config:
+
+  - Sets `"singleQuote"` option to `true`
+  - Adds `"*.json", "*.md", "*.yml", "*.jsonc"` to `"ignorePatterns"` option
+
+  Updates `format` command to include all files by default instead of the `./src` directory
+
+  Extracts `publint` from the `lint` command into a separate command
+
 ## 0.4.2
 
 ### Patch Changes
