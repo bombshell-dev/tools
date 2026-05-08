@@ -1,10 +1,13 @@
-import { existsSync, type Dirent } from 'node:fs';
-import { mkdir, readdir, readFile, readlink, rm, symlink, writeFile } from 'node:fs/promises';
-import { isAbsolute, relative, resolve } from 'node:path';
-import { cwd, platform } from 'node:process';
+import { readlink, symlink } from 'node:fs/promises';
+import { findPackageJSON } from 'node:module';
+import { dirname, isAbsolute, relative, resolve } from 'node:path';
+import { platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { NodeHfs } from '@humanfs/node';
 import { parse } from 'ultramatter';
 import type { CommandContext } from '../context.ts';
+
+const hfs = new NodeHfs();
 
 const SENTINEL_START = '<!-- bsh:skills -->';
 const SENTINEL_END = '<!-- /bsh:skills -->';
@@ -12,16 +15,17 @@ const GITIGNORE_START = '# bsh:skills';
 const GITIGNORE_END = '# /bsh:skills';
 
 export async function sync(_ctx: CommandContext): Promise<void> {
-	const root = pathToFileURL(`${cwd()}/`);
-
-	if (await isSelf(root)) {
-		console.info('Skipping sync — running inside @bomb.sh/tools');
+	const parentPkg = findParentPackage();
+	if (!parentPkg) {
+		console.info('Skipping sync — no parent project found (running inside @bomb.sh/tools?)');
 		return;
 	}
 
-	const source = new URL('node_modules/@bomb.sh/tools/skills/', root);
-	if (!existsSync(source)) {
-		console.error('@bomb.sh/tools is not installed. Run `pnpm add -D @bomb.sh/tools` first.');
+	const root = pathToFileURL(`${dirname(parentPkg)}/`);
+	const source = new URL('../../skills/', import.meta.url);
+
+	if (!(await hfs.isDirectory(source))) {
+		console.error('Could not locate bundled skills directory.');
 		return;
 	}
 
@@ -40,12 +44,15 @@ interface SkillInfo {
 async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInfo[]> {
 	const { source, dest } = options;
 	const skills: SkillInfo[] = [];
-	const entries = await readdir(source, { withFileTypes: true });
-	const keep = new Set<string>(
-		entries.filter((e) => e.isDirectory() && !e.name.startsWith('_')).map((e) => e.name),
-	);
 
-	await mkdir(dest, { recursive: true });
+	const keep = new Set<string>();
+	for await (const entry of hfs.list(source)) {
+		if (entry.isDirectory && !entry.name.startsWith('_')) {
+			keep.add(entry.name);
+		}
+	}
+
+	await hfs.createDirectory(dest);
 	await pruneStaleLinks({ dest, source, keep });
 
 	const destDirPath = fileURLToPath(dest);
@@ -55,14 +62,12 @@ async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInf
 		const srcDir = new URL(`${name}/`, source);
 		const destDir = new URL(`${name}/`, dest);
 
-		await rm(destDir, { recursive: true, force: true });
+		await hfs.deleteAll(destDir);
 
 		const target = relative(destDirPath, fileURLToPath(srcDir));
 		await symlink(target, fileURLToPath(destDir), linkType);
 
-		const skillMd = new URL('SKILL.md', srcDir);
-
-		const content = await safeRead(skillMd);
+		const content = await hfs.text(new URL('SKILL.md', srcDir));
 		if (content) {
 			const frontmatter = parseFrontmatter(content);
 			if (frontmatter) {
@@ -80,18 +85,13 @@ async function pruneStaleLinks(options: {
 	keep: Set<string>;
 }): Promise<void> {
 	const { dest, source, keep } = options;
+	if (!(await hfs.isDirectory(dest))) return;
+
 	const destPath = fileURLToPath(dest);
 	const sourcePath = fileURLToPath(source);
 
-	let entries: Dirent[];
-	try {
-		entries = await readdir(dest, { withFileTypes: true });
-	} catch {
-		return;
-	}
-
-	for (const entry of entries) {
-		if (!entry.isSymbolicLink()) continue;
+	for await (const entry of hfs.list(dest)) {
+		if (!entry.isSymlink) continue;
 		if (keep.has(entry.name)) continue;
 
 		const linkPath = fileURLToPath(new URL(entry.name, dest));
@@ -99,7 +99,7 @@ async function pruneStaleLinks(options: {
 			const target = await readlink(linkPath);
 			const absTarget = isAbsolute(target) ? target : resolve(destPath, target);
 			if (absTarget.startsWith(sourcePath)) {
-				await rm(linkPath, { recursive: true, force: true });
+				await hfs.deleteAll(linkPath);
 			}
 		} catch {
 			// ignore unreadable links
@@ -110,7 +110,7 @@ async function pruneStaleLinks(options: {
 async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
 	const { root, skills } = options;
 	const gitignorePath = new URL('.gitignore', root);
-	let content = (await safeRead(gitignorePath)) ?? '';
+	let content = (await hfs.text(gitignorePath)) ?? '';
 
 	const lines = skills.map((s) => `skills/${s.name}/`);
 	const section = [GITIGNORE_START, ...lines, GITIGNORE_END].join('\n');
@@ -125,13 +125,13 @@ async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Pro
 		content = content + suffix + '\n' + section + '\n';
 	}
 
-	await writeFile(gitignorePath, content, 'utf8');
+	await hfs.write(gitignorePath, content);
 }
 
 async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
 	const { root, skills } = options;
 	const agentsPath = new URL('AGENTS.md', root);
-	let content = (await safeRead(agentsPath)) ?? '';
+	let content = (await hfs.text(agentsPath)) ?? '';
 
 	const lines = skills.map((s) => {
 		const desc = s.description.split('.')[0]?.trim();
@@ -158,7 +158,7 @@ async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Prom
 		content = content + suffix + '\n' + section + '\n';
 	}
 
-	await writeFile(agentsPath, content, 'utf8');
+	await hfs.write(agentsPath, content);
 }
 
 function parseFrontmatter(content: string): SkillInfo | undefined {
@@ -171,18 +171,16 @@ function parseFrontmatter(content: string): SkillInfo | undefined {
 	return { name, description };
 }
 
-async function isSelf(root: URL): Promise<boolean> {
-	const content = await safeRead(new URL('package.json', root));
-	if (!content) return false;
-	const pkg = JSON.parse(content) as { name?: string };
-	return pkg.name === '@bomb.sh/tools';
-}
+function findParentPackage(): string | null {
+	const ownPkg = findPackageJSON(import.meta.url);
+	if (!ownPkg) return null;
 
-async function safeRead(url: URL): Promise<string | null> {
-	try {
-		return await readFile(url, 'utf8');
-	} catch (err) {
-		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') return null;
-		throw err;
+	let cursor = dirname(dirname(ownPkg));
+	while (cursor !== dirname(cursor)) {
+		const candidate = findPackageJSON(pathToFileURL(`${cursor}/`));
+		if (!candidate) return null;
+		if (candidate !== ownPkg) return candidate;
+		cursor = dirname(dirname(candidate));
 	}
+	return null;
 }
