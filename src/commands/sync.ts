@@ -177,23 +177,17 @@ function parseFrontmatter(content: string): SkillInfo | undefined {
 }
 
 async function isSelf(root: URL): Promise<boolean> {
-  const pkgPath = new URL("package.json", root);
-  if (!(await exists(pkgPath))) return false;
-  const content = await readFile(pkgPath, "utf8");
+  const content = await safeRead(new URL("package.json", root));
+  if (!content) return false;
   const pkg = JSON.parse(content) as { name?: string };
   return pkg.name === "@bomb.sh/tools";
 }
 
-async function exists(url: URL): Promise<boolean> {
+async function safeRead(url: URL): Promise<string | null> {
   try {
-    await readdir(url);
-    return true;
-  } catch {
-    try {
-      await readFile(url);
-      return true;
-    } catch {
-      return false;
-    }
+    return await readFile(url, "utf8");
+  } catch (err) {
+    if (err && typeof err === "object" && "code" in err && err.code === "ENOENT") return null;
+    throw err;
   }
 }
