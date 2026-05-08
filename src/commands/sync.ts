@@ -1,4 +1,4 @@
-import type { Dirent } from 'node:fs';
+import { existsSync, type Dirent } from 'node:fs';
 import { mkdir, readdir, readFile, readlink, rm, symlink, writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { cwd, platform } from 'node:process';
@@ -20,7 +20,7 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 	}
 
 	const source = new URL('node_modules/@bomb.sh/tools/skills/', root);
-	if (!(await safeRead(source))) {
+	if (!existsSync(source)) {
 		console.error('@bomb.sh/tools is not installed. Run `pnpm add -D @bomb.sh/tools` first.');
 		return;
 	}
