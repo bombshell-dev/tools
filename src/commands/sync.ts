@@ -20,7 +20,7 @@ export async function sync(_ctx: CommandContext): Promise<void> {
   }
 
   const source = new URL("node_modules/@bomb.sh/tools/skills/", root);
-  if (!(await exists(source))) {
+  if (!(await safeRead(source))) {
     console.error("@bomb.sh/tools is not installed. Run `pnpm add -D @bomb.sh/tools` first.");
     return;
   }
@@ -61,8 +61,9 @@ async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInf
     await symlink(target, fileURLToPath(destDir), linkType);
 
     const skillMd = new URL("SKILL.md", srcDir);
-    if (await exists(skillMd)) {
-      const content = await readFile(skillMd, "utf8");
+
+    const content = await safeRead(skillMd);
+    if (content) {
       const frontmatter = parseFrontmatter(content);
       if (frontmatter) {
         skills.push(frontmatter);
@@ -109,10 +110,7 @@ async function pruneStaleLinks(options: {
 async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
   const { root, skills } = options;
   const gitignorePath = new URL(".gitignore", root);
-  let content = "";
-  if (await exists(gitignorePath)) {
-    content = await readFile(gitignorePath, "utf8");
-  }
+  let content = (await safeRead(gitignorePath)) ?? "";
 
   const lines = skills.map((s) => `skills/${s.name}/`);
   const section = [GITIGNORE_START, ...lines, GITIGNORE_END].join("\n");
@@ -133,14 +131,11 @@ async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Pro
 async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
   const { root, skills } = options;
   const agentsPath = new URL("AGENTS.md", root);
-  let content = "";
-  if (await exists(agentsPath)) {
-    content = await readFile(agentsPath, "utf8");
-  }
+  let content = (await safeRead(agentsPath)) ?? "";
 
   const lines = skills.map((s) => {
-    const desc = s.description.split(".")[0].trim();
-    return `- **${s.name}** — [skills/${s.name}/SKILL.md](skills/${s.name}/SKILL.md) — ${desc}`;
+    const desc = s.description.split(".")[0]?.trim();
+    return `- **${s.name}** — [skills/${s.name}/SKILL.md](skills/${s.name}/SKILL.md)${desc ? ` - ${desc}` : ""}`;
   });
 
   const section = [
