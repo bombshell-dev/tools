@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.5.1
+
+### Patch Changes
+
+- 64e9826: Fixes an `EISDIR` error when calling `bsh sync`
+
 ## 0.5.0
 
 ### Minor Changes
