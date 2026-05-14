@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.5.2
+
+### Patch Changes
+
+- 340e898: Fixes errors that caused bsh sync to crash
+
 ## 0.5.1
 
 ### Patch Changes
