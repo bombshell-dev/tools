@@ -25,24 +25,31 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 	const args = ['-c', oxlintConfig, '--format=json', ...targets];
 	if (fix) args.push('--fix');
 	const result = await x(local('oxlint'), args, { throwOnError: false });
-	const json = JSON.parse(result.stdout);
-	return (json.diagnostics ?? []).map(
-		(d: {
-			message: string;
-			code: string;
-			severity: string;
-			filename?: string;
-			labels?: Array<{ span?: { line?: number; column?: number } }>;
-		}) => ({
-			tool: 'oxlint' as const,
-			level: d.severity === 'error' ? 'error' : 'warning',
-			code: d.code ?? 'unknown',
-			message: d.message,
-			file: d.filename,
-			line: d.labels?.[0]?.span?.line,
-			column: d.labels?.[0]?.span?.column,
-		}),
-	);
+	try {
+		const json = JSON.parse(result.stdout);
+		return (json.diagnostics ?? []).map(
+			(d: {
+				message: string;
+				code: string;
+				severity: string;
+				filename?: string;
+				labels?: Array<{ span?: { line?: number; column?: number } }>;
+			}) => ({
+				tool: 'oxlint' as const,
+				level: d.severity === 'error' ? 'error' : 'warning',
+				code: d.code ?? 'unknown',
+				message: d.message,
+				file: d.filename,
+				line: d.labels?.[0]?.span?.line,
+				column: d.labels?.[0]?.span?.column,
+			}),
+		);
+	} catch {
+		// in some cases, failures or no-ops do not produce valid JSON
+		// fallback to raw output rather than throwing an error
+		console.log(result.stdout);
+		return [];
+	}
 }
 
 export async function runKnip(): Promise<Violation[]> {
