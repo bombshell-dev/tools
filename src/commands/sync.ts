@@ -1,4 +1,4 @@
-import { readlink, symlink } from 'node:fs/promises';
+import { readlink, rm, symlink } from 'node:fs/promises';
 import { findPackageJSON } from 'node:module';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { platform } from 'node:process';
@@ -41,7 +41,7 @@ interface SkillInfo {
 	description: string;
 }
 
-async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInfo[]> {
+export async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInfo[]> {
 	const { source, dest } = options;
 	const skills: SkillInfo[] = [];
 
@@ -60,12 +60,15 @@ async function copySkills(options: { source: URL; dest: URL }): Promise<SkillInf
 
 	for (const name of keep) {
 		const srcDir = new URL(`${name}/`, source);
-		const destDir = new URL(`${name}/`, dest);
 
-		await hfs.deleteAll(destDir);
+		// Use a path without a trailing slash. macOS rejects a trailing-slash link
+		// path with ENOENT, and `rm` on a trailing-slash directory symlink follows
+		// the link and deletes the source rather than unlinking the symlink itself.
+		const linkPath = resolve(destDirPath, name);
+		await rm(linkPath, { recursive: true, force: true });
 
 		const target = relative(destDirPath, fileURLToPath(srcDir));
-		await symlink(target, fileURLToPath(destDir), linkType);
+		await symlink(target, linkPath, linkType);
 
 		const content = await hfs.text(new URL('SKILL.md', srcDir));
 		if (content) {
