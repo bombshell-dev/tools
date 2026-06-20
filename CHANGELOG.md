@@ -1,5 +1,16 @@
 # @bomb.sh/tools
 
+## 0.5.3
+
+### Patch Changes
+
+- 22f87d0: Fixes the `bsh init` command—it now points at the directory the template was actually cloned into.
+
+  `init` / `init .` now scaffolds into the current directory in-place and uses the current directory's basename as the project name.
+
+- 14e24a8: In some failure or no-op cases, oxlint seems to return output which is not json-parseable even with --json passed. Log output directly in these instances.
+- dd6abfa: Fixes `bsh sync` crashing when creating skill symlinks, and makes re-running it safe. It no longer errors or removes already-synced skills.
+
 ## 0.5.2
 
 ### Patch Changes
