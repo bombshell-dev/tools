@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.5.4
+
+### Patch Changes
+
+- 69fe08c: Fixes declaration file generation so that building with `--dts` now emits `.d.ts` files via `tsgo`
+
 ## 0.5.3
 
 ### Patch Changes
