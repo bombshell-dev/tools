@@ -1,7 +1,6 @@
 import { readlink, rm, symlink } from 'node:fs/promises';
-import { findPackageJSON } from 'node:module';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
-import { platform } from 'node:process';
+import { cwd, platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeHfs } from '@humanfs/node';
 import { parse } from 'ultramatter';
@@ -15,13 +14,17 @@ const GITIGNORE_START = '# bsh:skills';
 const GITIGNORE_END = '# /bsh:skills';
 
 export async function sync(_ctx: CommandContext): Promise<void> {
-	const parentPkg = findParentPackage();
-	if (!parentPkg) {
-		console.info('Skipping sync — no parent project found (running inside @bomb.sh/tools?)');
+	const project = await findProjectRoot(cwd());
+	if (project.kind === 'self') {
+		console.info('Skipping sync — running inside @bomb.sh/tools.');
+		return;
+	}
+	if (project.kind === 'not-found') {
+		console.info(`Skipping sync — no package.json found in ${cwd()} or any parent directory.`);
 		return;
 	}
 
-	const root = pathToFileURL(`${dirname(parentPkg)}/`);
+	const root = project.root;
 	const source = new URL('../../skills/', import.meta.url);
 
 	if (!(await hfs.isDirectory(source))) {
@@ -174,16 +177,28 @@ function parseFrontmatter(content: string): SkillInfo | undefined {
 	return { name, description };
 }
 
-function findParentPackage(): string | null {
-	const ownPkg = findPackageJSON(import.meta.url);
-	if (!ownPkg) return null;
+type ProjectLookup = { kind: 'found'; root: URL } | { kind: 'self' } | { kind: 'not-found' };
 
-	let cursor = dirname(dirname(ownPkg));
-	while (cursor !== dirname(cursor)) {
-		const candidate = findPackageJSON(pathToFileURL(`${cursor}/`));
-		if (!candidate) return null;
-		if (candidate !== ownPkg) return candidate;
-		cursor = dirname(dirname(candidate));
+/**
+ * Locate the project to sync into by walking up from `start` to the nearest
+ * `package.json`.
+ *
+ * This is based on the working directory the user runs `bsh sync` from — not the
+ * install location of `@bomb.sh/tools`, which under pnpm resolves to an unrelated
+ * path inside the virtual store. Returns `self` when the nearest package is
+ * `@bomb.sh/tools` so the command is a no-op when run inside this repo.
+ */
+export async function findProjectRoot(start: string): Promise<ProjectLookup> {
+	let dir = start;
+	while (true) {
+		const pkgUrl = new URL('package.json', pathToFileURL(`${dir}/`));
+		if (await hfs.isFile(pkgUrl)) {
+			const pkg = (await hfs.json(pkgUrl)) as { name?: string } | undefined;
+			if (pkg?.name === '@bomb.sh/tools') return { kind: 'self' };
+			return { kind: 'found', root: new URL('./', pkgUrl) };
+		}
+		const parent = dirname(dir);
+		if (parent === dir) return { kind: 'not-found' };
+		dir = parent;
 	}
-	return null;
 }
