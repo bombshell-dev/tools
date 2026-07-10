@@ -16,7 +16,7 @@ export async function build(ctx: CommandContext) {
 		sourcemap: true,
 		clean: true,
 		unbundle: !args.bundle,
-		dts: args.dts,
+		dts: args.dts ? { tsgo: true } : false,
 		minify: args.minify,
 	});
 }

@@ -1,6 +1,6 @@
 {
   "name": "@bomb.sh/tools",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "The internal dev, build, and lint CLI for Bombshell projects",
   "keywords": [
     "bombshell",
@@ -63,13 +63,13 @@
     "@bomb.sh/args": "^0.3.1",
     "@humanfs/node": "^0.16.7",
     "@humanfs/types": "^0.15.0",
-    "@typescript/native-preview": "7.0.0-dev.20260427.1",
+    "@typescript/native-preview": "7.0.0-dev.20260623.1",
     "knip": "^6.9.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
     "publint": "^0.3.18",
     "tinyexec": "^1.1.1",
-    "tsdown": "^0.21.10",
+    "tsdown": "^0.22.3",
     "ultramatter": "^0.0.4",
     "vitest": "^4.1.2",
     "vitest-ansi-serializer": "^0.2.1"
