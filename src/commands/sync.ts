@@ -1,7 +1,7 @@
 import { readlink, rm, symlink } from 'node:fs/promises';
 import { findPackageJSON } from 'node:module';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
-import { platform } from 'node:process';
+import { cwd, env, platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeHfs } from '@humanfs/node';
 import { parse } from 'ultramatter';
@@ -15,7 +15,7 @@ const GITIGNORE_START = '# bsh:skills';
 const GITIGNORE_END = '# /bsh:skills';
 
 export async function sync(_ctx: CommandContext): Promise<void> {
-	const parentPkg = findParentPackage();
+	const parentPkg = await findParentPackage();
 	if (!parentPkg) {
 		console.info('Skipping sync — no parent project found (running inside @bomb.sh/tools?)');
 		return;
@@ -174,16 +174,28 @@ function parseFrontmatter(content: string): SkillInfo | undefined {
 	return { name, description };
 }
 
-function findParentPackage(): string | null {
-	const ownPkg = findPackageJSON(import.meta.url);
-	if (!ownPkg) return null;
+/**
+ * Locate the consuming project's package.json. The project root must come
+ * from where the command was invoked, never from this package's physical
+ * location: under pnpm's isolated layout, import.meta.url resolves through
+ * the node_modules symlink into node_modules/.pnpm/<hash>/, and walking up
+ * from there lands in the store, not the user's project. INIT_CWD (set by
+ * pnpm/npm to the directory the script was run from) is preferred because
+ * package scripts may rewrite cwd. Returns null when no project is found or
+ * when invoked inside @bomb.sh/tools itself.
+ */
+export async function findParentPackage(): Promise<string | null> {
+	const startDir = env.INIT_CWD ?? cwd();
+	const candidate = findPackageJSON(pathToFileURL(`${startDir}/`));
+	if (!candidate) return null;
 
-	let cursor = dirname(dirname(ownPkg));
-	while (cursor !== dirname(cursor)) {
-		const candidate = findPackageJSON(pathToFileURL(`${cursor}/`));
-		if (!candidate) return null;
-		if (candidate !== ownPkg) return candidate;
-		cursor = dirname(dirname(candidate));
+	const text = await hfs.text(pathToFileURL(candidate));
+	if (!text) return null;
+	try {
+		const pkg = JSON.parse(text) as { name?: string };
+		if (pkg.name === '@bomb.sh/tools') return null;
+	} catch {
+		return null;
 	}
-	return null;
+	return candidate;
 }

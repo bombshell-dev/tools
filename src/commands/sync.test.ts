@@ -1,8 +1,8 @@
 import { lstat, readlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { createFixture } from '../test-utils/index.ts';
-import { copySkills } from './sync.ts';
+import { createFixture, createMocks } from '../test-utils/index.ts';
+import { copySkills, findParentPackage } from './sync.ts';
 
 describe('copySkills', () => {
 	it('symlinks each skill into the destination', async () => {
@@ -52,5 +52,30 @@ describe('copySkills', () => {
 		// The source skill files must survive a re-sync.
 		expect(await fixture.text('source-skills/build/SKILL.md')).toContain('name: build');
 		expect(await fixture.text('project/skills/build/SKILL.md')).toContain('name: build');
+	});
+});
+
+describe('findParentPackage', () => {
+	it('resolves the project root from INIT_CWD, not from this package', async () => {
+		const fixture = await createFixture({
+			project: {
+				'package.json': '{ "name": "my-app" }',
+				nested: {},
+			},
+		});
+		createMocks({ env: { INIT_CWD: fileURLToPath(new URL('project/nested/', fixture.root)) } });
+
+		const found = await findParentPackage();
+
+		expect(found).toBe(fileURLToPath(new URL('project/package.json', fixture.root)));
+	});
+
+	it('returns null when invoked inside @bomb.sh/tools itself', async () => {
+		const fixture = await createFixture({
+			'package.json': '{ "name": "@bomb.sh/tools" }',
+		});
+		createMocks({ env: { INIT_CWD: fileURLToPath(fixture.root) } });
+
+		expect(await findParentPackage()).toBe(null);
 	});
 });
