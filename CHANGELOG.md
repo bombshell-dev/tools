@@ -1,5 +1,17 @@
 # @bomb.sh/tools
 
+## 0.5.5
+
+### Patch Changes
+
+- 08e749c: Fixes `bsh sync` writing its output into the pnpm store instead of the project root. The project is now resolved from the invocation directory (`INIT_CWD`, falling back to `cwd`), so `skills/` symlinks, the `AGENTS.md` section, and the `.gitignore` entries land in the project that ran the command under pnpm's default isolated `node_modules` layout
+
+## 0.5.4
+
+### Patch Changes
+
+- 69fe08c: Fixes declaration file generation so that building with `--dts` now emits `.d.ts` files via `tsgo`
+
 ## 0.5.3
 
 ### Patch Changes
