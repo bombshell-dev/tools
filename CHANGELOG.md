@@ -1,5 +1,11 @@
 # @bomb.sh/tools
 
+## 0.5.6
+
+### Patch Changes
+
+- 9650d7e: Updates the README to document the `bsh sync` and `bsh publint` commands and accurately describe how `sync` links agent skills into a project
+
 ## 0.5.5
 
 ### Patch Changes
