@@ -47,9 +47,22 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 	} catch {
 		// in some cases, failures or no-ops do not produce valid JSON
 		// fallback to raw output rather than throwing an error
-		console.log(result.stdout);
+		console.info(result.stdout);
 		return [];
 	}
+}
+
+/**
+ * Mechanically fix knip-reported issues. Dependency hygiene (removing unused
+ * deps from package.json) always runs with `--fix`; dead-code fixes (unused
+ * exports/types) only run in `--strict` mode, matching the report tiers.
+ * Unused files are never deleted automatically.
+ */
+export async function runKnipFix(strict?: boolean): Promise<void> {
+	const types = strict ? 'dependencies,exports,types' : 'dependencies';
+	await x(local('knip'), ['--fix', '--fix-type', types, '--no-progress'], {
+		throwOnError: false,
+	});
 }
 
 export async function runKnip(): Promise<Violation[]> {
@@ -166,12 +179,12 @@ export function printViolations(violations: Violation[]) {
 	};
 
 	for (const [file, items] of grouped) {
-		console.log(`\n${file}`);
+		console.info(`\n${file}`);
 		for (const v of items) {
 			const loc = v.line != null ? `  ${v.line}:${v.column ?? 0}` : '  -';
 			const color = colors[v.level];
 			const tag = `${v.tool}/${v.code}`;
-			console.log(
+			console.info(
 				`${colors.dim}${loc.padEnd(10)}${colors.reset}${color}${v.level.padEnd(12)}${colors.reset}${v.message}  ${colors.dim}${tag}${colors.reset}`,
 			);
 		}
@@ -191,9 +204,9 @@ export function printViolations(violations: Violation[]) {
 			`${colors.suggestion}${counts.suggestion} suggestion${counts.suggestion > 1 ? 's' : ''}${colors.reset}`,
 		);
 	if (parts.length > 0) {
-		console.log(`\n${parts.join(', ')}`);
+		console.info(`\n${parts.join(', ')}`);
 	} else {
-		console.log('\nNo issues found.');
+		console.info('\nNo issues found.');
 	}
 }
 
@@ -215,12 +228,13 @@ async function collectViolations(targets: string[]): Promise<Violation[]> {
 
 export async function lint(ctx: CommandContext) {
 	const args = parse(ctx.args, {
-		boolean: ['fix'],
+		boolean: ['fix', 'strict'],
 	});
 	const targets = args._.length > 0 ? args._.map(String) : ['./src'];
 
 	if (args.fix) {
 		await runOxlint(targets, true);
+		await runKnipFix(args.strict);
 
 		// Report remaining
 		const remaining = await collectViolations(targets);
@@ -228,7 +242,7 @@ export async function lint(ctx: CommandContext) {
 			printViolations(remaining);
 			process.exit(1);
 		}
-		console.log('No issues found.');
+		console.info('No issues found.');
 		return;
 	}
 
