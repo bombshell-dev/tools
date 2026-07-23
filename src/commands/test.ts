@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { x } from 'tinyexec';
 import type { CommandContext } from '../context.ts';
-import { local } from '../utils.ts';
+import { local, ToolsError } from '../utils.ts';
 
 function resolveConfig(): string {
 	// Built output (.mjs) or source (.ts)
@@ -11,7 +11,7 @@ function resolveConfig(): string {
 		const path = fileURLToPath(url);
 		if (existsSync(path)) return path;
 	}
-	throw new Error('Could not resolve vitest.config file');
+	throw new ToolsError('Could not resolve vitest.config file', 'VITEST_CONFIG_NOT_FOUND');
 }
 
 export async function test(ctx: CommandContext) {
