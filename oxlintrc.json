@@ -44,6 +44,9 @@
 		"import/no-default-export": "error",
 		"bombshell-dev/no-generic-error": "error",
 		"bombshell-dev/require-export-jsdoc": "warn",
-		"bombshell-dev/exported-function-async": "warn"
+		"bombshell-dev/exported-function-async": "warn",
+
+		"unicorn/consistent-function-scoping": "off",
+		"no-underscore-dangle": "off"
 	}
 }
