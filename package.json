@@ -52,7 +52,7 @@
   "scripts": {
     "bsh": "node --experimental-strip-types --no-warnings ./src/bin.ts",
     "dev": "pnpm run bsh dev",
-    "build": "pnpm run bsh build --dts",
+    "build": "pnpm run bsh build",
     "format": "pnpm run bsh format",
     "init": "pnpm run bsh init",
     "lint": "pnpm run bsh lint",
