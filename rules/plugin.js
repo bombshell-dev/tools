@@ -5,6 +5,45 @@ const plugin = {
 	},
 	rules: {
 		/**
+		 * Ban `console.log` (and other unlisted console methods) in favor of
+		 * leveled output: `console.info`, `console.warn`, `console.error`,
+		 * `console.debug`.
+		 *
+		 * `console.log` is auto-fixable to `console.info` — in Node.js the two
+		 * are aliases for the same stdout write, so the fix is semantically
+		 * neutral.
+		 */
+		'no-console-log': {
+			meta: { fixable: 'code' },
+			create(context) {
+				const ALLOWED = new Set(['info', 'warn', 'error', 'debug']);
+
+				return {
+					CallExpression(node) {
+						const callee = node.callee;
+						if (
+							callee.type !== 'MemberExpression' ||
+							callee.object.type !== 'Identifier' ||
+							callee.object.name !== 'console' ||
+							callee.property.type !== 'Identifier' ||
+							ALLOWED.has(callee.property.name)
+						) {
+							return;
+						}
+						const fixable = callee.property.name === 'log';
+						context.report({
+							node: callee.property,
+							message: fixable
+								? 'Use `console.info` instead of `console.log`.'
+								: `Unexpected \`console.${callee.property.name}\` — use console.info/warn/error/debug.`,
+							...(fixable ? { fix: (fixer) => fixer.replaceText(callee.property, 'info') } : {}),
+						});
+					},
+				};
+			},
+		},
+
+		/**
 		 * Disallow `throw new Error(...)` in favor of custom error classes.
 		 *
 		 * Generic `Error` objects lack structured metadata (error codes, hints, etc.)

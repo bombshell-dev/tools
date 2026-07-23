@@ -35,7 +35,8 @@
 
 		"unicorn/prefer-node-protocol": "error",
 		"typescript/consistent-type-imports": "error",
-		"no-console": ["warn", { "allow": ["info", "warn", "error", "debug"] }],
+		"no-console": "off",
+		"bombshell-dev/no-console-log": "warn",
 		"prefer-const": "error",
 		"no-var": "error",
 		"max-params": ["error", { "max": 2 }],
