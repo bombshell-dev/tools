@@ -48,8 +48,8 @@ describe('lint command', () => {
 	});
 
 	describe('runKnip', () => {
-		it('detects unused exports and unused files', async () => {
-			fixture = await createFixture({
+		const knipFixture = () =>
+			createFixture({
 				'package.json': {
 					name: 'test-pkg',
 					version: '1.0.0',
@@ -71,12 +71,24 @@ describe('lint command', () => {
 					`,
 				},
 			});
+
+		it('reports dead code only in strict mode', async () => {
+			fixture = await knipFixture();
+			process.chdir(fileURLToPath(fixture.root));
+
+			const violations = await runKnip({ strict: true });
+
+			expect(violations).not.toEqual([]);
+			expect(violations).toMatchSnapshot();
+		});
+
+		it('filters dead-code issues by default', async () => {
+			fixture = await knipFixture();
 			process.chdir(fileURLToPath(fixture.root));
 
 			const violations = await runKnip();
 
-			expect(violations).not.toEqual([]);
-			expect(violations).toMatchSnapshot();
+			expect(violations).toEqual([]);
 		});
 	});
 });

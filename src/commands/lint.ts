@@ -52,7 +52,13 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 	}
 }
 
-export async function runKnip(): Promise<Violation[]> {
+/**
+ * Knip dead-code issue kinds (unused exports/types/files) fire constantly
+ * mid-implementation — an export is "unused" until its consumer exists.
+ * They only carry signal as a commit-time gate, so they require `--strict`.
+ * Dependency hygiene issues are stable and always reported.
+ */
+export async function runKnip(options?: { strict?: boolean }): Promise<Violation[]> {
 	const args = ['--no-progress', '--reporter', 'json'];
 	const result = await x(local('knip'), args, { throwOnError: false });
 	if (!result.stdout.trim()) return [];
@@ -83,6 +89,7 @@ export async function runKnip(): Promise<Violation[]> {
 				column: dep.col,
 			});
 		}
+		if (!options?.strict) continue;
 		for (const exp of issue.exports ?? []) {
 			violations.push({
 				tool: 'knip',
@@ -122,11 +129,12 @@ export async function runKnip(): Promise<Violation[]> {
 }
 
 async function runTypeScript(targets: string[]): Promise<Violation[]> {
-	const args =
-		targets.length > 0
-			? ['--noEmit', '--pretty', 'false', ...targets]
-			: ['--noEmit', '--pretty', 'false'];
-	const result = await x(local('tsgo'), args, { throwOnError: false });
+	// Always run in project mode: passing files on the command line makes
+	// tsgo skip the tsconfig (TS5112). Explicit targets filter the report
+	// after the fact instead.
+	const result = await x(local('tsgo'), ['--noEmit', '--pretty', 'false'], {
+		throwOnError: false,
+	});
 	const output = result.stdout + result.stderr;
 	if (!output.trim()) return [];
 
@@ -144,41 +152,38 @@ async function runTypeScript(targets: string[]): Promise<Violation[]> {
 			column: Number(match[3]),
 		});
 	}
-	return violations;
+	if (targets.length === 0) return violations;
+	const prefixes = targets.map((t) => t.replace(/^\.\//, ''));
+	return violations.filter((v) => v.file && prefixes.some((p) => v.file!.startsWith(p)));
 }
 
 // -- Output --
 
-export function printViolations(violations: Violation[]) {
-	const grouped = new Map<string, Violation[]>();
-	for (const v of violations) {
-		const key = v.file ?? '(project)';
-		if (!grouped.has(key)) grouped.set(key, []);
-		grouped.get(key)!.push(v);
-	}
+const colors = {
+	error: '\x1b[31m',
+	warning: '\x1b[33m',
+	suggestion: '\x1b[34m',
+	dim: '\x1b[2m',
+	reset: '\x1b[0m',
+};
 
-	const colors = {
-		error: '\x1b[31m',
-		warning: '\x1b[33m',
-		suggestion: '\x1b[34m',
-		dim: '\x1b[2m',
-		reset: '\x1b[0m',
-	};
+function printViolation(v: Violation) {
+	const loc = v.line != null ? `  ${v.line}:${v.column ?? 0}` : '  -';
+	const color = colors[v.level];
+	const tag = `${v.tool}/${v.code}`;
+	console.log(
+		`${colors.dim}${loc.padEnd(10)}${colors.reset}${color}${v.level.padEnd(12)}${colors.reset}${v.message}  ${colors.dim}${tag}${colors.reset}`,
+	);
+}
 
-	for (const [file, items] of grouped) {
-		console.log(`\n${file}`);
-		for (const v of items) {
-			const loc = v.line != null ? `  ${v.line}:${v.column ?? 0}` : '  -';
-			const color = colors[v.level];
-			const tag = `${v.tool}/${v.code}`;
-			console.log(
-				`${colors.dim}${loc.padEnd(10)}${colors.reset}${color}${v.level.padEnd(12)}${colors.reset}${v.message}  ${colors.dim}${tag}${colors.reset}`,
-			);
-		}
-	}
-
+function countByLevel(violations: Violation[]) {
 	const counts = { error: 0, warning: 0, suggestion: 0 };
 	for (const v of violations) counts[v.level]++;
+	return counts;
+}
+
+function printSummary(violations: Violation[]) {
+	const counts = countByLevel(violations);
 	const parts = [];
 	if (counts.error)
 		parts.push(`${colors.error}${counts.error} error${counts.error > 1 ? 's' : ''}${colors.reset}`);
@@ -190,17 +195,69 @@ export function printViolations(violations: Violation[]) {
 		parts.push(
 			`${colors.suggestion}${counts.suggestion} suggestion${counts.suggestion > 1 ? 's' : ''}${colors.reset}`,
 		);
-	if (parts.length > 0) {
-		console.log(`\n${parts.join(', ')}`);
-	} else {
-		console.log('\nNo issues found.');
+	console.log(parts.length > 0 ? `\n${parts.join(', ')}` : '\nNo issues found.');
+}
+
+/**
+ * Print violations grouped by file. Errors are always shown in full.
+ * Warnings collapse to a per-rule count unless `warnings` is set — they
+ * don't affect the exit code, so a wall of them buries actual failures.
+ */
+export function printViolations(violations: Violation[], options?: { warnings?: boolean }) {
+	const showWarnings = options?.warnings ?? false;
+	const visible = showWarnings ? violations : violations.filter((v) => v.level === 'error');
+
+	const grouped = new Map<string, Violation[]>();
+	for (const v of visible) {
+		const key = v.file ?? '(project)';
+		if (!grouped.has(key)) grouped.set(key, []);
+		grouped.get(key)!.push(v);
 	}
+
+	for (const [file, items] of grouped) {
+		console.log(`\n${file}`);
+		for (const v of items) printViolation(v);
+	}
+
+	if (!showWarnings) {
+		const hidden = violations.filter((v) => v.level !== 'error');
+		if (hidden.length > 0) {
+			const byRule = new Map<string, number>();
+			for (const v of hidden) {
+				const tag = `${v.tool}/${v.code}`;
+				byRule.set(tag, (byRule.get(tag) ?? 0) + 1);
+			}
+			console.log(
+				`\n${colors.dim}${hidden.length} warning${hidden.length > 1 ? 's' : ''} hidden (run with --warnings to show):${colors.reset}`,
+			);
+			for (const [tag, count] of [...byRule].sort((a, b) => b[1] - a[1])) {
+				console.log(`${colors.dim}  ${count} × ${tag}${colors.reset}`);
+			}
+		}
+	}
+
+	printSummary(violations);
+}
+
+/** Machine-readable report for agents and CI. */
+export function printJson(violations: Violation[]) {
+	console.log(JSON.stringify({ summary: countByLevel(violations), violations }, null, 2));
 }
 
 // -- Main --
 
-async function collectViolations(targets: string[]): Promise<Violation[]> {
-	const results = await Promise.allSettled([runOxlint(targets), runKnip(), runTypeScript(targets)]);
+async function collectViolations(
+	targets: string[],
+	options?: { strict?: boolean },
+): Promise<Violation[]> {
+	// oxlint honors targets (default: project-wide); tsgo runs in project
+	// mode unless the user explicitly narrowed the target set.
+	const explicit = targets.length > 0;
+	const results = await Promise.allSettled([
+		runOxlint(explicit ? targets : ['.']),
+		runKnip({ strict: options?.strict }),
+		runTypeScript(explicit ? targets : []),
+	]);
 
 	const violations: Violation[] = [];
 	for (const result of results) {
@@ -215,26 +272,31 @@ async function collectViolations(targets: string[]): Promise<Violation[]> {
 
 export async function lint(ctx: CommandContext) {
 	const args = parse(ctx.args, {
-		boolean: ['fix'],
+		boolean: ['fix', 'strict', 'warnings'],
+		string: ['format'],
 	});
-	const targets = args._.length > 0 ? args._.map(String) : ['./src'];
+	const targets = args._.map(String);
+	const json = args.format === 'json';
+	const print = (violations: Violation[]) =>
+		json ? printJson(violations) : printViolations(violations, { warnings: args.warnings });
 
 	if (args.fix) {
-		await runOxlint(targets, true);
+		await runOxlint(targets.length > 0 ? targets : ['.'], true);
 
 		// Report remaining
-		const remaining = await collectViolations(targets);
+		const remaining = await collectViolations(targets, { strict: args.strict });
 		if (remaining.length > 0) {
-			printViolations(remaining);
-			process.exit(1);
+			print(remaining);
+			if (remaining.some((v) => v.level === 'error')) process.exit(1);
+			return;
 		}
-		console.log('No issues found.');
+		if (!json) console.log('No issues found.');
 		return;
 	}
 
 	// Default: report only
-	const violations = await collectViolations(targets);
-	printViolations(violations);
+	const violations = await collectViolations(targets, { strict: args.strict });
+	print(violations);
 	if (violations.some((v) => v.level === 'error')) {
 		process.exit(1);
 	}
