@@ -1,15 +1,16 @@
 ---
 name: lint
 description: >
-  Multi-tool linting pipeline: oxlint, publint, knip, tsgo run in parallel via
-  pnpm run lint. Covers Bombshell conventions: URL over node:path, max 2 params
-  with options bag, named exports only, import type, prefer node builtins, no
-  console.log, no generic Error. Use when checking code quality or understanding
-  lint violations.
+  Multi-tool linting pipeline: oxlint, knip, and tsgo run in parallel via
+  pnpm run lint (publint gates pnpm run build instead). Covers Bombshell
+  conventions: URL over node:path, max 2 params with options bag, named
+  exports only, import type, prefer node builtins, no console.log, no
+  generic Error. Use when checking code quality or understanding lint
+  violations.
 metadata:
   type: core
   library: '@bomb.sh/tools'
-  library_version: '0.3.1'
+  library_version: '0.6.0'
   requires:
     - lifecycle
   sources:
@@ -20,32 +21,63 @@ metadata:
 
 # Lint
 
-Multi-tool linting pipeline. All four tools run in parallel with unified output.
+Multi-tool linting pipeline. oxlint, knip, and tsgo run in parallel with unified output.
 
 ## Setup
 
 ```sh
-pnpm run lint              # Report violations
-pnpm run lint -- --fix     # Auto-fix (oxlint only), then report remaining
-pnpm run lint -- src/foo.ts  # Target specific files (default: ./src)
+pnpm run lint                      # Report errors (warnings collapsed to counts)
+pnpm run lint -- --warnings        # Show warnings in full
+pnpm run lint -- --strict          # Include knip dead-code checks (pre-commit gate)
+pnpm run lint -- --fix             # Auto-fix (oxlint only), then report remaining
+pnpm run lint -- src/foo.ts        # Target specific files (default: whole project)
+pnpm -s run lint -- --format json  # Machine-readable report for agents/CI
 ```
 
-Do not run oxlint, publint, knip, or tsgo directly. Always use `pnpm run lint`.
+Do not run oxlint, knip, or tsgo directly. Always use `pnpm run lint`.
+(`--format json` needs `pnpm -s` to keep pnpm's banner out of stdout.)
 
-See [lifecycle/SKILL.md](../lifecycle/SKILL.md) for where lint fits in the development workflow (step 5: after tests pass, before format).
+See [lifecycle/SKILL.md](../lifecycle/SKILL.md) for where lint fits in the development workflow (step 3: after tests pass, before format). Run `--strict` at PR handoff, not during the TDD loop.
 
 ## How It Works
 
-`pnpm run lint` runs `bsh lint`, which executes four tools via `Promise.allSettled`:
+`pnpm run lint` runs `bsh lint`, which executes three tools via `Promise.allSettled`:
 
 | Tool | What It Checks | Fix Support |
 |------|---------------|-------------|
 | **oxlint** | JS/TS linting via Rust-based engine with Bombshell config | Yes (`--fix`) |
-| **publint** | `package.json` exports, types, and field correctness (strict mode) | No |
-| **knip** | Unused dependencies, devDependencies, exports, types, files | No |
-| **tsgo** | TypeScript type errors (`--noEmit`, native Go compiler) | No |
+| **knip** | Unused dependencies/devDependencies (always); unused exports, types, files (`--strict` only) | No |
+| **tsgo** | TypeScript type errors (`--noEmit`, project mode) | No |
 
-Results merge into a single report grouped by file. Exit code 1 if any errors exist.
+Results merge into a single report grouped by file. **Errors print in full;
+warnings collapse to a per-rule count** (they never affect the exit code —
+pass `--warnings` to expand them). Exit code 1 if any errors exist.
+
+publint is deliberately not part of lint: its file-existence checks need
+`dist/`, so it runs as a publish gate in `pnpm run build` (see
+[build/SKILL.md](../build/SKILL.md)) and standalone via `pnpm run publint`.
+
+## Remedies
+
+The sanctioned fix for the most common violations. Do not improvise
+alternatives (e.g. sprinkling disable comments).
+
+| Violation | Fix |
+|-----------|-----|
+| `tsc/TS2688` — Cannot find type definition file for 'node' | `pnpm add -D @types/node` |
+| `tsc/TS2591` — Cannot find name 'process'/'Buffer' | `pnpm add -D @types/node` |
+| `oxlint/eslint(no-restricted-imports)` | Use the `URL` API; `fileURLToPath()` only at third-party boundaries |
+| `oxlint/eslint(max-params)` / `bombshell-dev(max-params)` | Options bag with a typed interface. If conforming to a platform interface, say so with `override`/`implements` — the rule exempts those |
+| `oxlint/import(no-default-export)` | Use a named export |
+| `oxlint/bombshell-dev(no-generic-error)` | Define a project error class with a `code`; throw that |
+| `oxlint/bombshell-dev(exported-function-async)` | Only fires on public entry files: make it `async`, or move the export out of the public surface |
+| `oxlint/bombshell-dev(require-export-jsdoc)` | Only fires on public entry files: add a one-line `/** ... */` |
+| `knip/unused-dependency` | Remove it from `package.json` |
+| `knip/unused-export` (`--strict`) | Un-export it, or delete it if nothing consumes it |
+
+Inline `// oxlint-disable` comments are a last resort for genuinely
+exceptional cases, never a workflow. If a rule is wrong for your project
+shape, raise it — the fix belongs upstream in `oxlintrc.json`.
 
 ## Core Patterns
 
@@ -68,7 +100,12 @@ await thirdPartyLib(configPath);
 
 ### Options bag for >2 parameters
 
-Functions must have at most 2 parameters. Use an options object for anything beyond that.
+Functions we author must have at most 2 parameters. Use an options object for anything beyond that.
+
+Signatures conforming to an API you don't control are exempt — `override`
+methods, members of classes that `extends` or `implements`, and inline
+callbacks. If a platform interface forces more parameters on you, express the
+conformance (`override`, `implements`) and the rule stays silent.
 
 ```ts
 // Correct
@@ -144,7 +181,11 @@ Use `const` by default. Use `let` only when reassignment is necessary. `var` is 
 
 ### Exported functions: `async`, explicit return types, JSDoc
 
-All three are enforced (as warnings) on exported functions:
+All three are enforced (as warnings) on exported functions — but `async` and
+JSDoc only apply to the **public API surface**: files consumers can import,
+derived from `package.json` `exports`/`bin` (mapping `dist/` paths back to
+`src/`). Internal modules are exempt. Packages with no publish surface (apps,
+examples) are exempt entirely.
 
 ```ts
 // Correct
@@ -274,7 +315,7 @@ Builtin error constructors (`Error`, `TypeError`, `RangeError`, `ReferenceError`
 
 ## Tensions
 
-- **Prototyping speed vs lint strictness**: During early prototyping (see [lifecycle](../lifecycle/SKILL.md)), you may want to move fast. The lint rules still apply -- write correct code from the start rather than fixing lint after the fact.
+- **Prototyping speed vs lint strictness**: During early prototyping (see [lifecycle](../lifecycle/SKILL.md)), you may want to move fast. The lint rules still apply -- write correct code from the start rather than fixing lint after the fact. Dead-code checks (knip unused exports/types/files) are deferred to `--strict` at PR handoff precisely so they don't fire mid-implementation.
 - **Opinionated defaults vs explicit config**: The lint config is intentionally strict and not configurable per-project. If a rule is wrong, change it in `oxlintrc.json` upstream.
 
 ## Reference

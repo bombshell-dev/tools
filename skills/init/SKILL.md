@@ -7,7 +7,7 @@ description: >
 metadata:
   type: core
   library: '@bomb.sh/tools'
-  library_version: '0.3.1'
+  library_version: '0.6.0'
   sources:
     - 'bombshell-dev/tools:src/commands/init.ts'
 ---
