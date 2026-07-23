@@ -102,9 +102,22 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 		} catch {
 			// in some cases, failures or no-ops do not produce valid JSON
 			// fallback to raw output rather than throwing an error
-			console.log(result.stdout);
+			console.info(result.stdout);
 			return [];
 		}
+	});
+}
+
+/**
+ * Mechanically fix knip-reported issues. Dependency hygiene (removing unused
+ * deps from package.json) always runs with `--fix`; dead-code fixes (unused
+ * exports/types) only run in `--strict` mode, matching the report tiers.
+ * Unused files are never deleted automatically.
+ */
+export async function runKnipFix(strict?: boolean): Promise<void> {
+	const types = strict ? 'dependencies,exports,types' : 'dependencies';
+	await x(local('knip'), ['--fix', '--fix-type', types, '--no-progress'], {
+		throwOnError: false,
 	});
 }
 
@@ -268,7 +281,6 @@ export function printViolations(violations: Violation[], options?: { warnings?: 
 		const key = v.file ?? '(project)';
 		if (!grouped.has(key)) grouped.set(key, []);
 		grouped.get(key)!.push(v);
-	}
 
 	for (const [file, items] of grouped) {
 		console.log(`\n${file}`);
@@ -338,6 +350,7 @@ export async function lint(ctx: CommandContext) {
 
 	if (args.fix) {
 		await runOxlint(targets.length > 0 ? targets : ['.'], true);
+		await runKnipFix(args.strict);
 
 		// Report remaining
 		const remaining = await collectViolations(targets, { strict: args.strict });
