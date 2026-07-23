@@ -6,7 +6,7 @@ export async function dev(ctx: CommandContext) {
 	const { args } = ctx;
 	const [file = './src/index.ts', ...rest] = args;
 	// console.clear();
-	console.log(
+	console.info(
 		`node --experimental-transform-types --disable-warning=ExperimentalWarning ${args.join(' ')}`,
 	);
 	const stdio = x('node', [
@@ -16,18 +16,18 @@ export async function dev(ctx: CommandContext) {
 		file,
 		...rest,
 	]);
-	console.log('Starting dev server...');
-	console.log('Press Ctrl+C to stop the server.');
+	console.info('Starting dev server...');
+	console.info('Press Ctrl+C to stop the server.');
 
 	for await (const line of stdio) {
 		if (line.startsWith('Restarting')) {
-			console.log(line);
+			console.info(line);
 			continue;
 		}
 		if (line.startsWith('Completed')) {
-			console.log();
+			console.info();
 			continue;
 		}
-		console.log(line);
+		console.info(line);
 	}
 }
