@@ -18,6 +18,6 @@ export async function test(ctx: CommandContext) {
 	const stdio = x(local('vitest'), ['run', '--config', resolveConfig(), ...ctx.args]);
 
 	for await (const line of stdio) {
-		console.log(line);
+		console.info(line);
 	}
 }

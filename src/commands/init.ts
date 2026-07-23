@@ -17,7 +17,7 @@ export async function init(ctx: CommandContext) {
 	// `--force` lets the template extract into an existing (non-empty) directory.
 	if (inPlace) gigetArgs.push('--force');
 	for await (const line of x('pnpx', gigetArgs)) {
-		console.log(line);
+		console.info(line);
 	}
 
 	const promises: Promise<void>[] = [];
