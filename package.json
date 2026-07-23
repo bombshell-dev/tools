@@ -82,19 +82,5 @@
     "node": "22.14.0"
   },
   "packageManager": "pnpm@10.34.3",
-  "pnpm": {},
-  "knip": {
-    "ignore": [
-      "rules/**"
-    ],
-    "ignoreDependencies": [
-      "@bomb.sh/args",
-      "@typescript/native-preview",
-      "oxfmt",
-      "oxlint",
-      "publint",
-      "tsdown",
-      "vitest"
-    ]
-  }
+  "pnpm": {}
 }
