@@ -10,7 +10,7 @@ If you'd like to use this package for your own projects, please consider forking
 - `bsh test` command, using [`vitest`](https://vitest.dev/)
 - `bsh format` command, using [`oxfmt`](https://oxc.rs/docs/guide/usage/formatter)
 - `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter), [`knip`](https://knip.dev), [`tsgo`](https://npmx.dev/@typescript/native-preview)
-- `bsh publint` command, using [`publint`](https://publint.dev/)
+- `bsh publint` command, using [`publint`](https://publint.dev/) (also runs automatically as a publish gate in `bsh build`)
 - `bsh sync` command, which links our shared [agent skills](#agent-skills) into your project
 - shared `tsconfig.json` file
 
