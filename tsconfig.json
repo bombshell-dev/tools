@@ -3,7 +3,7 @@
     /* Base Options: */
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "target": "es2022",
+    "target": "es2024",
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
@@ -23,7 +23,10 @@
     "moduleResolution": "nodenext",
     "noEmit": true,
     "declaration": true,
-    "lib": ["es2022"],
+    "lib": ["es2024"],
+
+    /* Node packages need @types/node — one clear error beats a wall of TS2591s */
+    "types": ["node"],
 
     /* Monorepo? */
     "composite": true,
