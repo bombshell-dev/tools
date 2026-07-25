@@ -1,11 +1,65 @@
 import { fileURLToPath } from 'node:url';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { parse } from '@bomb.sh/args';
 import { x } from 'tinyexec';
 import type { JSONReport as KnipJSONReport } from 'knip';
 import type { CommandContext } from '../context.ts';
+import { getPublicSurface } from '../surface.ts';
 import { local } from '../utils.ts';
 
 const oxlintConfig = fileURLToPath(new URL('../../oxlintrc.json', import.meta.url));
+
+/**
+ * Rules that only apply to the public API surface (see `surface.ts`).
+ * Moved from the global ruleset into `overrides` at runtime.
+ */
+const SURFACE_RULES = [
+	'bombshell-dev/exported-function-async',
+	'bombshell-dev/require-export-jsdoc',
+];
+
+/**
+ * Generate the effective oxlint config for the project at `cwd`.
+ *
+ * Surface-scoped rules are lifted out of the shared config's global ruleset
+ * and re-applied via `overrides` limited to the package's public API surface,
+ * so internal modules aren't held to public-API conventions. Written into the
+ * project root because oxlint resolves `overrides.files` relative to the
+ * config location; deleted after the run.
+ */
+async function withEffectiveConfig<T>(run: (configPath: string) => Promise<T>): Promise<T> {
+	const cwd = process.cwd();
+	const base = JSON.parse(await readFile(oxlintConfig, 'utf-8'));
+	delete base.$schema;
+
+	// jsPlugins paths are relative to the shared config — make them absolute
+	// so the generated copy can live anywhere.
+	if (Array.isArray(base.jsPlugins)) {
+		base.jsPlugins = base.jsPlugins.map((plugin: string) =>
+			fileURLToPath(new URL(plugin, new URL('../../oxlintrc.json', import.meta.url))),
+		);
+	}
+
+	const surface = await getPublicSurface(new URL(`file://${cwd}/`));
+	const scoped: Record<string, unknown> = {};
+	for (const rule of SURFACE_RULES) {
+		if (base.rules?.[rule] !== undefined) {
+			scoped[rule] = base.rules[rule];
+			delete base.rules[rule];
+		}
+	}
+	if (surface.length > 0 && Object.keys(scoped).length > 0) {
+		base.overrides = [...(base.overrides ?? []), { files: surface, rules: scoped }];
+	}
+
+	const configPath = `${cwd}/.bsh.oxlintrc.json`;
+	await writeFile(configPath, JSON.stringify(base, null, 2));
+	try {
+		return await run(configPath);
+	} finally {
+		await rm(configPath, { force: true });
+	}
+}
 
 // -- Types --
 
@@ -22,34 +76,36 @@ interface Violation {
 // -- Tool Runners --
 
 export async function runOxlint(targets: string[], fix?: boolean): Promise<Violation[]> {
-	const args = ['-c', oxlintConfig, '--format=json', ...targets];
-	if (fix) args.push('--fix');
-	const result = await x(local('oxlint'), args, { throwOnError: false });
-	try {
-		const json = JSON.parse(result.stdout);
-		return (json.diagnostics ?? []).map(
-			(d: {
-				message: string;
-				code: string;
-				severity: string;
-				filename?: string;
-				labels?: Array<{ span?: { line?: number; column?: number } }>;
-			}) => ({
-				tool: 'oxlint' as const,
-				level: d.severity === 'error' ? 'error' : 'warning',
-				code: d.code ?? 'unknown',
-				message: d.message,
-				file: d.filename,
-				line: d.labels?.[0]?.span?.line,
-				column: d.labels?.[0]?.span?.column,
-			}),
-		);
-	} catch {
-		// in some cases, failures or no-ops do not produce valid JSON
-		// fallback to raw output rather than throwing an error
-		console.log(result.stdout);
-		return [];
-	}
+	return withEffectiveConfig(async (config) => {
+		const args = ['-c', config, '--format=json', ...targets];
+		if (fix) args.push('--fix');
+		const result = await x(local('oxlint'), args, { throwOnError: false });
+		try {
+			const json = JSON.parse(result.stdout);
+			return (json.diagnostics ?? []).map(
+				(d: {
+					message: string;
+					code: string;
+					severity: string;
+					filename?: string;
+					labels?: Array<{ span?: { line?: number; column?: number } }>;
+				}) => ({
+					tool: 'oxlint' as const,
+					level: d.severity === 'error' ? 'error' : 'warning',
+					code: d.code ?? 'unknown',
+					message: d.message,
+					file: d.filename,
+					line: d.labels?.[0]?.span?.line,
+					column: d.labels?.[0]?.span?.column,
+				}),
+			);
+		} catch {
+			// in some cases, failures or no-ops do not produce valid JSON
+			// fallback to raw output rather than throwing an error
+			console.log(result.stdout);
+			return [];
+		}
+	});
 }
 
 export async function runKnip(): Promise<Violation[]> {
