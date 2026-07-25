@@ -20,7 +20,7 @@ export async function runPublint() {
 export async function publintCommand() {
 	const violations = await runPublint();
 
-	printViolations(violations);
+	printViolations(violations, { warnings: true });
 	if (violations.some((v) => v.level === 'error')) {
 		process.exit(1);
 	}
