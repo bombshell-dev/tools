@@ -38,7 +38,8 @@
 		"no-console": ["warn", { "allow": ["info", "warn", "error", "debug"] }],
 		"prefer-const": "error",
 		"no-var": "error",
-		"max-params": ["error", { "max": 2 }],
+		"max-params": "off",
+		"bombshell-dev/max-params": ["error", { "max": 2 }],
 		"typescript/explicit-function-return-type": ["warn", { "allowExpressions": true }],
 
 		"import/no-default-export": "error",
