@@ -5,6 +5,72 @@ const plugin = {
 	},
 	rules: {
 		/**
+		 * Limit functions to 2 parameters in APIs we author.
+		 *
+		 * Beyond that, use an options bag. Functions that conform to an
+		 * interface we don't control are exempt — the signature is imposed,
+		 * not designed:
+		 *
+		 *   - `override` methods
+		 *   - members of classes that `extends` or `implements`
+		 *   - inline callbacks (arguments, object-literal properties)
+		 */
+		'max-params': {
+			meta: {
+				schema: [
+					{
+						type: 'object',
+						properties: { max: { type: 'number' } },
+						additionalProperties: false,
+					},
+				],
+			},
+			create(context) {
+				const max = context.options?.[0]?.max ?? 2;
+
+				function isExempt(node) {
+					const parent = node.parent;
+					if (!parent) return false;
+
+					// Class members: exempt when conforming to a base class or
+					// interface; standalone class members are authored API.
+					if (parent.type === 'MethodDefinition' || parent.type === 'PropertyDefinition') {
+						if (parent.override) return true;
+						const classNode = parent.parent?.parent;
+						return Boolean(classNode?.superClass || classNode?.implements?.length);
+					}
+
+					// Named functions assigned to variables are authored API.
+					if (parent.type === 'VariableDeclarator') return false;
+
+					// Function declarations are always authored API.
+					if (node.type === 'FunctionDeclaration') return false;
+
+					// Everything else is an inline callback (call arguments,
+					// object-literal properties, array elements, ...) conforming
+					// to someone else's signature.
+					return true;
+				}
+
+				function check(node) {
+					if (node.params.length <= max) return;
+					if (isExempt(node)) return;
+					const name = node.id?.name ?? node.parent?.key?.name ?? 'anonymous';
+					context.report({
+						node,
+						message: `Function \`${name}\` has too many parameters (${node.params.length}). Maximum allowed is ${max} — use an options bag.`,
+					});
+				}
+
+				return {
+					FunctionDeclaration: check,
+					FunctionExpression: check,
+					ArrowFunctionExpression: check,
+				};
+			},
+		},
+
+		/**
 		 * Disallow `throw new Error(...)` in favor of custom error classes.
 		 *
 		 * Generic `Error` objects lack structured metadata (error codes, hints, etc.)
