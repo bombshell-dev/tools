@@ -1,6 +1,5 @@
 import { mkdtemp, symlink as fsSymlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeHfs } from '@humanfs/node';
 import type { HfsImpl } from '@humanfs/types';
@@ -9,6 +8,10 @@ import { expect, onTestFinished } from 'vitest';
 interface ScopedHfsImpl extends Required<HfsImpl> {
 	text(file: string | URL): Promise<string | undefined>;
 	json(file: string | URL): Promise<unknown | undefined>;
+	/** Strings are UTF-8 encoded automatically. */
+	write(file: string | URL, contents: string | Uint8Array): Promise<void>;
+	/** Strings are UTF-8 encoded automatically. */
+	append(file: string | URL, contents: string | Uint8Array): Promise<void>;
 }
 
 /**
@@ -103,13 +106,15 @@ function isFileTree(value: unknown): value is FileTree {
 function scopeHfs(inner: NodeHfs, base: URL): ScopedHfsImpl {
 	const r = (p: string | URL) => new URL(`./${p}`, base);
 	const r2 = (a: string | URL, b: string | URL) => [r(a), r(b)] as const;
+	const encoder = new TextEncoder();
+	const bytes = (c: string | Uint8Array) => (typeof c === 'string' ? encoder.encode(c) : c);
 
 	return {
 		text: (p: string | URL) => inner.text(r(p)),
 		json: (p: string | URL) => inner.json(r(p)),
 		bytes: (p) => inner.bytes(r(p)),
-		write: (p, c) => inner.write(r(p), c),
-		append: (p, c) => inner.append(r(p), c),
+		write: (p, c) => inner.write(r(p), bytes(c)),
+		append: (p, c) => inner.append(r(p), bytes(c)),
 		isFile: (p) => inner.isFile(r(p)),
 		isDirectory: (p) => inner.isDirectory(r(p)),
 		createDirectory: (p) => inner.createDirectory(r(p)),
@@ -155,7 +160,7 @@ export async function createFixture(files: FileTree): Promise<Fixture> {
 		.replace(/^-|-$/g, '');
 	const root = new URL(`${prefix}-`, `file://${tmpdir()}/`);
 	const path = await mkdtemp(fileURLToPath(root));
-	const base = pathToFileURL(path + sep);
+	const base = new URL(`${pathToFileURL(path).href}/`);
 
 	const inner = new NodeHfs();
 	const scoped = scopeHfs(inner, base);

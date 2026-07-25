@@ -6,6 +6,14 @@
 		"correctness": "error",
 		"suspicious": "warn"
 	},
+	"overrides": [
+		{
+			"files": ["**/*.config.{ts,mts,js,mjs,cjs}", "rules/**/*.{js,ts}"],
+			"rules": {
+				"import/no-default-export": "off"
+			}
+		}
+	],
 	"rules": {
 		"no-restricted-imports": [
 			"error",

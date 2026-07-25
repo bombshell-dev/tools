@@ -1,5 +1,4 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { basename } from 'node:path';
 import { cwd } from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { x } from 'tinyexec';
@@ -10,7 +9,9 @@ export async function init(ctx: CommandContext) {
 	const cwdUrl = pathToFileURL(`${cwd()}/`);
 	// `.` scaffolds into the current directory; otherwise clone into a new `./<name>/`.
 	const inPlace = _name === '.';
-	const name = inPlace ? basename(cwd()) : _name;
+	const name = inPlace
+		? decodeURIComponent(cwdUrl.pathname.split('/').filter(Boolean).pop() ?? '.')
+		: _name;
 	const target = inPlace ? '.' : name;
 	const dest = inPlace ? cwdUrl : new URL(`./${name}/`, cwdUrl);
 	const gigetArgs = ['giget@latest', 'gh:bombshell-dev/template', target];

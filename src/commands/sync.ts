@@ -1,11 +1,11 @@
 import { readlink, rm, symlink } from 'node:fs/promises';
 import { findPackageJSON } from 'node:module';
-import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { cwd, env, platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeHfs } from '@humanfs/node';
 import { parse } from 'ultramatter';
 import type { CommandContext } from '../context.ts';
+import { relativeUrlPath, resolveLinkTarget } from '../utils.ts';
 
 const hfs = new NodeHfs();
 
@@ -21,7 +21,7 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 		return;
 	}
 
-	const root = pathToFileURL(`${dirname(parentPkg)}/`);
+	const root = new URL('./', pathToFileURL(parentPkg));
 	const source = new URL('../../skills/', import.meta.url);
 
 	if (!(await hfs.isDirectory(source))) {
@@ -55,7 +55,6 @@ export async function copySkills(options: { source: URL; dest: URL }): Promise<S
 	await hfs.createDirectory(dest);
 	await pruneStaleLinks({ dest, source, keep });
 
-	const destDirPath = fileURLToPath(dest);
 	const linkType = platform === 'win32' ? 'junction' : 'dir';
 
 	for (const name of keep) {
@@ -64,10 +63,10 @@ export async function copySkills(options: { source: URL; dest: URL }): Promise<S
 		// Use a path without a trailing slash. macOS rejects a trailing-slash link
 		// path with ENOENT, and `rm` on a trailing-slash directory symlink follows
 		// the link and deletes the source rather than unlinking the symlink itself.
-		const linkPath = resolve(destDirPath, name);
+		const linkPath = fileURLToPath(new URL(name, dest));
 		await rm(linkPath, { recursive: true, force: true });
 
-		const target = relative(destDirPath, fileURLToPath(srcDir));
+		const target = relativeUrlPath(dest, srcDir);
 		await symlink(target, linkPath, linkType);
 
 		const content = await hfs.text(new URL('SKILL.md', srcDir));
@@ -90,9 +89,6 @@ async function pruneStaleLinks(options: {
 	const { dest, source, keep } = options;
 	if (!(await hfs.isDirectory(dest))) return;
 
-	const destPath = fileURLToPath(dest);
-	const sourcePath = fileURLToPath(source);
-
 	for await (const entry of hfs.list(dest)) {
 		if (!entry.isSymlink) continue;
 		if (keep.has(entry.name)) continue;
@@ -100,8 +96,7 @@ async function pruneStaleLinks(options: {
 		const linkPath = fileURLToPath(new URL(entry.name, dest));
 		try {
 			const target = await readlink(linkPath);
-			const absTarget = isAbsolute(target) ? target : resolve(destPath, target);
-			if (absTarget.startsWith(sourcePath)) {
+			if (resolveLinkTarget(dest, target).href.startsWith(source.href)) {
 				await hfs.deleteAll(linkPath);
 			}
 		} catch {
