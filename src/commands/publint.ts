@@ -13,7 +13,7 @@ export async function publintCommand() {
 		column: undefined,
 	}));
 
-	printViolations(violations);
+	printViolations(violations, { warnings: true });
 	if (violations.some((v) => v.level === 'error')) {
 		process.exit(1);
 	}
