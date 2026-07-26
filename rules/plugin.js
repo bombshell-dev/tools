@@ -108,9 +108,6 @@ const plugin = {
 				};
 			},
 		},
-				};
-			},
-		},
 
 		/**
 		 * Disallow `throw new Error(...)` in favor of custom error classes.

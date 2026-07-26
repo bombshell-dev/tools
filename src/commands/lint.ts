@@ -281,6 +281,7 @@ export function printViolations(violations: Violation[], options?: { warnings?: 
 		const key = v.file ?? '(project)';
 		if (!grouped.has(key)) grouped.set(key, []);
 		grouped.get(key)!.push(v);
+	}
 
 	for (const [file, items] of grouped) {
 		console.log(`\n${file}`);

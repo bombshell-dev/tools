@@ -132,7 +132,7 @@ describe('lint command', () => {
 			const violations = await runOxlint(['./src']);
 			const maxParams = violations.filter((v) => v.code === 'bombshell-dev(max-params)');
 
-			expect(maxParams.map((v) => v.line).sort((a, b) => a - b)).toEqual([2, 3, 4, 11]);
+			expect(maxParams.map((v) => v.line!).sort((a, b) => a - b)).toEqual([2, 3, 4, 11]);
 		});
 	});
 
