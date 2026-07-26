@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createFixture } from '../test-utils/index.ts';
-import { runOxlint, runKnip } from './lint.ts';
+import { runOxlint, runKnip, runKnipFix } from './lint.ts';
 import { fileURLToPath } from 'node:url';
 
 describe('lint command', () => {
@@ -83,6 +83,21 @@ describe('lint command', () => {
 				[],
 			);
 		});
+
+		it('auto-fixes console.log to console.info', async () => {
+			fixture = await createFixture({
+				src: {
+					'index.ts': 'console.log("hello");\nconsole.info("ok");\n',
+				},
+			});
+			process.chdir(fileURLToPath(fixture.root));
+
+			await runOxlint(['./src'], true);
+
+			expect(await fixture.text('src/index.ts')).toBe(
+				'console.info("hello");\nconsole.info("ok");\n',
+			);
+		});
 	});
 
 	describe('bombshell-dev/max-params', () => {
@@ -117,7 +132,34 @@ describe('lint command', () => {
 			const violations = await runOxlint(['./src']);
 			const maxParams = violations.filter((v) => v.code === 'bombshell-dev(max-params)');
 
-			expect(maxParams.map((v) => v.line).sort((a, b) => a - b)).toEqual([2, 3, 4, 11]);
+			expect(maxParams.map((v) => v.line!).sort((a, b) => a - b)).toEqual([2, 3, 4, 11]);
+		});
+	});
+
+	describe('runKnipFix', () => {
+		it('removes unused dependencies from package.json', async () => {
+			fixture = await createFixture({
+				'package.json': {
+					name: 'test-pkg',
+					version: '1.0.0',
+					type: 'module',
+					exports: './src/index.ts',
+					dependencies: { 'left-pad': '^1.3.0' },
+				},
+				src: {
+					'index.ts': 'export const value = 42;\n',
+				},
+			});
+			process.chdir(fileURLToPath(fixture.root));
+
+			const before = await runKnip();
+			expect(before.some((v) => v.code === 'unused-dependency')).toBe(true);
+
+			await runKnipFix();
+
+			const pkg = (await fixture.json('package.json')) as { dependencies?: unknown };
+			expect(pkg.dependencies ?? {}).toEqual({});
+			expect(await runKnip()).toEqual([]);
 		});
 	});
 

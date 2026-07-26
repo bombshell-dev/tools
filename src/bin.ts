@@ -15,13 +15,13 @@ async function main() {
 	const [command, ...args] = argv.slice(2);
 
 	if (!command) {
-		console.log(`No command provided. Available commands: ${Object.keys(commands).join(', ')}\n`);
+		console.info(`No command provided. Available commands: ${Object.keys(commands).join(', ')}\n`);
 		return;
 	}
 
 	const run = commands[command as keyof typeof commands];
 	if (!run) {
-		console.log(
+		console.info(
 			`Unknown command: ${command}. Available commands: ${Object.keys(commands).join(', ')}`,
 		);
 		return;

@@ -9,6 +9,6 @@ export async function format(ctx: CommandContext) {
 	const stdio = x(local('oxfmt'), ['-c', config, ...ctx.args]);
 
 	for await (const line of stdio) {
-		console.log(line);
+		console.info(line);
 	}
 }
