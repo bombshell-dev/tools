@@ -5,7 +5,7 @@ import { x } from 'tinyexec';
 import type { JSONReport as KnipJSONReport } from 'knip';
 import type { CommandContext } from '../context.ts';
 import { getPublicSurface } from '../surface.ts';
-import { local } from '../utils.ts';
+import { local, ToolsError } from '../utils.ts';
 
 const oxlintConfig = fileURLToPath(new URL('../../oxlintrc.json', import.meta.url));
 
@@ -100,8 +100,9 @@ export async function runOxlint(targets: string[], fix?: boolean): Promise<Viola
 				}),
 			);
 		} catch {
-			// in some cases, failures or no-ops do not produce valid JSON
-			// fallback to raw output rather than throwing an error
+			if (result.exitCode !== 0)
+				throw new ToolsError(`oxlint exited with code ${result.exitCode}`, 'oxlint-exit');
+			// no-ops do not produce valid JSON — fall back to raw output
 			console.info(result.stdout);
 			return [];
 		}
@@ -132,7 +133,14 @@ export async function runKnip(options?: { strict?: boolean }): Promise<Violation
 	const result = await x(local('knip'), args, { throwOnError: false });
 	if (!result.stdout.trim()) return [];
 
-	const json: KnipJSONReport = JSON.parse(result.stdout);
+	let json: KnipJSONReport;
+	try {
+		json = JSON.parse(result.stdout);
+	} catch {
+		if (result.exitCode !== 0)
+			throw new ToolsError(`knip exited with code ${result.exitCode}`, 'knip-exit');
+		return [];
+	}
 	const violations: Violation[] = [];
 
 	for (const issue of json.issues) {
@@ -205,7 +213,11 @@ async function runTypeScript(targets: string[]): Promise<Violation[]> {
 		throwOnError: false,
 	});
 	const output = result.stdout + result.stderr;
-	if (!output.trim()) return [];
+	if (!output.trim()) {
+		if (result.exitCode !== 0)
+			throw new ToolsError(`tsgo exited with code ${result.exitCode}`, 'tsgo-exit');
+		return [];
+	}
 
 	const violations: Violation[] = [];
 	const re = /^(.+)\((\d+),(\d+)\): (error|warning) (TS\d+): (.+)$/gm;
@@ -318,7 +330,7 @@ export function printJson(violations: Violation[]) {
 async function collectViolations(
 	targets: string[],
 	options?: { strict?: boolean },
-): Promise<Violation[]> {
+): Promise<{ violations: Violation[]; failed: boolean }> {
 	// oxlint honors targets (default: project-wide); tsgo runs in project
 	// mode unless the user explicitly narrowed the target set.
 	const explicit = targets.length > 0;
@@ -329,14 +341,16 @@ async function collectViolations(
 	]);
 
 	const violations: Violation[] = [];
+	let failed = false;
 	for (const result of results) {
 		if (result.status === 'fulfilled') {
 			violations.push(...result.value);
 		} else {
+			failed = true;
 			console.error(result.reason);
 		}
 	}
-	return violations;
+	return { violations, failed };
 }
 
 export async function lint(ctx: CommandContext) {
@@ -354,20 +368,23 @@ export async function lint(ctx: CommandContext) {
 		await runKnipFix(args.strict);
 
 		// Report remaining
-		const remaining = await collectViolations(targets, { strict: args.strict });
+		const { violations: remaining, failed } = await collectViolations(targets, {
+			strict: args.strict,
+		});
 		if (remaining.length > 0) {
 			print(remaining);
-			if (remaining.some((v) => v.level === 'error')) process.exit(1);
+			if (remaining.some((v) => v.level === 'error') || failed) process.exit(1);
 			return;
 		}
+		if (failed) process.exit(1);
 		if (!json) console.log('No issues found.');
 		return;
 	}
 
 	// Default: report only
-	const violations = await collectViolations(targets, { strict: args.strict });
+	const { violations, failed } = await collectViolations(targets, { strict: args.strict });
 	print(violations);
-	if (violations.some((v) => v.level === 'error')) {
+	if (violations.some((v) => v.level === 'error') || failed) {
 		process.exit(1);
 	}
 }
