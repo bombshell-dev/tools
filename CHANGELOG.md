@@ -1,5 +1,12 @@
 # @bomb.sh/tools
 
+## 0.6.1
+
+### Patch Changes
+
+- 349b48b: `format` CLI command respects internal format call and passes the exit code to the user.
+- 57d4d61: `lint` CLI command respects internal `lint` call and passes the exit code to the user.
+
 ## 0.6.0
 
 ### Minor Changes
