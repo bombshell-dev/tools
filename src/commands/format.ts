@@ -11,5 +11,5 @@ export async function format(ctx: CommandContext) {
 	for await (const line of result) {
 		console.info(line);
 	}
-	if (result.exitCode !== 0) process.exit(result.exitCode!);
+	if (result.exitCode) process.exit(result.exitCode);
 }
