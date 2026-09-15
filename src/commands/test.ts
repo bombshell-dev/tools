@@ -15,10 +15,10 @@ function resolveConfig(): string {
 }
 
 export async function test(ctx: CommandContext) {
-	const result = x(local('vitest'), ['run', '--config', resolveConfig(), ...ctx.args]);
+	const stdio = x(local('vitest'), ['run', '--config', resolveConfig(), ...ctx.args]);
 
-	for await (const line of result) {
+	for await (const line of stdio) {
 		console.info(line);
 	}
-	if (result.exitCode) process.exit(result.exitCode);
+	if (stdio.exitCode) process.exit(stdio.exitCode);
 }
