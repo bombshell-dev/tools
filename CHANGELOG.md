@@ -1,5 +1,13 @@
 # @bomb.sh/tools
 
+## 0.6.2
+
+### Patch Changes
+
+- df8a41e: `test` CLI command keeps vitest's default excludes, so test files inside nested `node_modules` are no longer collected.
+- 1f085b9: `test` CLI command respects internal `vitest` call and passes the exit code to the user.
+- 815cf15: `format` CLI command applies the shared `ignorePatterns` to the project being formatted instead of only to files inside `@bomb.sh/tools`.
+
 ## 0.6.1
 
 ### Patch Changes
