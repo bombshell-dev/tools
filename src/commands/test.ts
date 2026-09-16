@@ -20,4 +20,5 @@ export async function test(ctx: CommandContext) {
 	for await (const line of stdio) {
 		console.info(line);
 	}
+	if (stdio.exitCode) process.exit(stdio.exitCode);
 }
