@@ -36,6 +36,10 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 	console.info(`Synced ${skills.length} skills to skills/`);
 }
 
+export async function resolveSkillsSource(_root: URL, fallback: URL): Promise<URL> {
+	return fallback;
+}
+
 interface SkillInfo {
 	name: string;
 	description: string;

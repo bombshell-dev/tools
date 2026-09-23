@@ -1,8 +1,8 @@
-import { lstat, readlink } from 'node:fs/promises';
+import { lstat, readlink, realpath, symlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { createFixture, createMocks } from '../test-utils/index.ts';
-import { copySkills, findParentPackage, updateAgentsMd } from './sync.ts';
+import { copySkills, findParentPackage, resolveSkillsSource, updateAgentsMd } from './sync.ts';
 
 describe('copySkills', () => {
 	it('symlinks each skill into the destination', async () => {
@@ -82,6 +82,34 @@ describe('copySkills', () => {
 			]),
 		);
 	});
+
+	it('prunes stale links that target the real path of the source', async () => {
+		const fixture = await createFixture({
+			store: {
+				skills: {
+					build: { 'SKILL.md': '---\nname: build\ndescription: Build.\n---\n' },
+				},
+			},
+			project: {
+				tools: ({ symlink }) => symlink('../store'),
+				skills: {},
+			},
+		});
+		// Left behind by an older sync that linked through the real path.
+		await symlink(
+			`${await realpath(fileURLToPath(new URL('store/skills/', fixture.root)))}/removed`,
+			fileURLToPath(new URL('project/skills/removed', fixture.root)),
+		);
+
+		await copySkills({
+			source: new URL('project/tools/skills/', fixture.root),
+			dest: new URL('project/skills/', fixture.root),
+		});
+
+		await expect(
+			lstat(fileURLToPath(new URL('project/skills/removed', fixture.root))),
+		).rejects.toThrow();
+	});
 });
 
 describe('updateAgentsMd', () => {
@@ -101,6 +129,30 @@ describe('updateAgentsMd', () => {
 		expect(await fixture.text('AGENTS.md')).toContain(
 			'- **test** — [skills/test/SKILL.md](skills/test/SKILL.md) - Vitest test runner with colocated .test.ts files\n',
 		);
+	});
+});
+
+describe('resolveSkillsSource', () => {
+	it('prefers the project node_modules path over the real store path', async () => {
+		const fixture = await createFixture({
+			store: { tools: { skills: { build: { 'SKILL.md': '' } } } },
+			project: {
+				'node_modules/@bomb.sh/tools': ({ symlink }) => symlink('../../../store/tools'),
+			},
+		});
+		const root = new URL('project/', fixture.root);
+		const fallback = new URL('store/tools/skills/', fixture.root);
+
+		expect((await resolveSkillsSource(root, fallback)).href).toBe(
+			new URL('node_modules/@bomb.sh/tools/skills/', root).href,
+		);
+	});
+
+	it('falls back when the project has no linked @bomb.sh/tools', async () => {
+		const fixture = await createFixture({ project: {} });
+		const fallback = new URL('store/tools/skills/', fixture.root);
+
+		expect(await resolveSkillsSource(new URL('project/', fixture.root), fallback)).toBe(fallback);
 	});
 });
 
