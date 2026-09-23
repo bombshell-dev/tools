@@ -3,7 +3,7 @@ import { findPackageJSON } from 'node:module';
 import { cwd, env, platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeHfs } from '@humanfs/node';
-import { parse } from 'ultramatter';
+import { parse } from 'yaml';
 import type { CommandContext } from '../context.ts';
 import { relativeUrlPath, resolveLinkTarget } from '../utils.ts';
 
@@ -132,7 +132,7 @@ export async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }
 	let content = (await hfs.text(agentsPath)) ?? '';
 
 	const lines = skills.map((s) => {
-		const desc = s.description.split('.')[0]?.trim();
+		const desc = s.description.split(/\.(?:\s|$)/)[0]?.trim();
 		return `- **${s.name}** — [skills/${s.name}/SKILL.md](skills/${s.name}/SKILL.md)${desc ? ` - ${desc}` : ''}`;
 	});
 
@@ -160,7 +160,9 @@ export async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }
 }
 
 function parseFrontmatter(content: string): SkillInfo | undefined {
-	const { frontmatter } = parse(content);
+	const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
+	if (!match) return undefined;
+	const frontmatter = parse(match[1]!) as Record<string, unknown> | null;
 	if (!frontmatter) return undefined;
 	const name = frontmatter.name as string | undefined;
 	const description =
