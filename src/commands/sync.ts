@@ -13,6 +13,9 @@ const SENTINEL_START = '<!-- bsh:skills -->';
 const SENTINEL_END = '<!-- /bsh:skills -->';
 const GITIGNORE_START = '# bsh:skills';
 const GITIGNORE_END = '# /bsh:skills';
+const SKILLS_DIR = '.agents/skills/';
+// Where syncs before `.agents/skills/` linked skills.
+const LEGACY_SKILLS_DIR = 'skills/';
 
 export async function sync(_ctx: CommandContext): Promise<void> {
 	const parentPkg = await findParentPackage();
@@ -29,11 +32,12 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 		return;
 	}
 
-	const skills = await copySkills({ source, dest: new URL('skills/', root) });
+	const skills = await copySkills({ source, dest: new URL(SKILLS_DIR, root) });
+	await removeLegacyLinks({ dir: new URL(LEGACY_SKILLS_DIR, root), skills });
 	await updateGitignore({ root, skills });
 	await updateAgentsMd({ root, skills });
 
-	console.info(`Synced ${skills.length} skills to skills/`);
+	console.info(`Synced ${skills.length} skills to ${SKILLS_DIR}`);
 }
 
 /**
@@ -119,12 +123,33 @@ async function pruneStaleLinks(options: {
 	}
 }
 
+/**
+ * Remove links from syncs that predate `.agents/skills/`. Match by name, not
+ * target: after an upgrade those links point into a store path that may no
+ * longer exist. Anything that isn't a symlink is left alone.
+ */
+async function removeLegacyLinks(options: { dir: URL; skills: SkillInfo[] }): Promise<void> {
+	const { dir, skills } = options;
+	if (!(await hfs.isDirectory(dir))) return;
+
+	const names = new Set(skills.map((s) => s.name));
+	let remaining = 0;
+	for await (const entry of hfs.list(dir)) {
+		if (entry.isSymlink && names.has(entry.name)) {
+			await rm(fileURLToPath(new URL(entry.name, dir)));
+		} else {
+			remaining++;
+		}
+	}
+	if (remaining === 0) await hfs.delete(dir);
+}
+
 async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
 	const { root, skills } = options;
 	const gitignorePath = new URL('.gitignore', root);
 	let content = (await hfs.text(gitignorePath)) ?? '';
 
-	const lines = skills.map((s) => `skills/${s.name}/`);
+	const lines = skills.map((s) => `${SKILLS_DIR}${s.name}/`);
 	const section = [GITIGNORE_START, ...lines, GITIGNORE_END].join('\n');
 
 	const startIdx = content.indexOf(GITIGNORE_START);
@@ -147,7 +172,8 @@ export async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }
 
 	const lines = skills.map((s) => {
 		const desc = s.description.split(/\.(?:\s|$)/)[0]?.trim();
-		return `- **${s.name}** — [skills/${s.name}/SKILL.md](skills/${s.name}/SKILL.md)${desc ? ` - ${desc}` : ''}`;
+		const path = `${SKILLS_DIR}${s.name}/SKILL.md`;
+		return `- **${s.name}** — [${path}](${path})${desc ? ` - ${desc}` : ''}`;
 	});
 
 	const section = [
