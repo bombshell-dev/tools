@@ -1,4 +1,4 @@
-import { readlink, rm, symlink } from 'node:fs/promises';
+import { readlink, realpath, rm, symlink } from 'node:fs/promises';
 import { findPackageJSON } from 'node:module';
 import { cwd, env, platform } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -22,7 +22,7 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 	}
 
 	const root = new URL('./', pathToFileURL(parentPkg));
-	const source = new URL('../../skills/', import.meta.url);
+	const source = await resolveSkillsSource(root, new URL('../../skills/', import.meta.url));
 
 	if (!(await hfs.isDirectory(source))) {
 		console.error('Could not locate bundled skills directory.');
@@ -36,8 +36,15 @@ export async function sync(_ctx: CommandContext): Promise<void> {
 	console.info(`Synced ${skills.length} skills to skills/`);
 }
 
-export async function resolveSkillsSource(_root: URL, fallback: URL): Promise<URL> {
-	return fallback;
+/**
+ * Prefer linking through the project's `node_modules/@bomb.sh/tools` over
+ * `import.meta.url`, which resolves to the real path. Under pnpm that is a
+ * versioned `node_modules/.pnpm/<hash>/` directory, so links into it dangle
+ * once a reinstall changes the hash.
+ */
+export async function resolveSkillsSource(root: URL, fallback: URL): Promise<URL> {
+	const linked = new URL('node_modules/@bomb.sh/tools/skills/', root);
+	return (await hfs.isDirectory(linked)) ? linked : fallback;
 }
 
 interface SkillInfo {
@@ -93,14 +100,17 @@ async function pruneStaleLinks(options: {
 	const { dest, source, keep } = options;
 	if (!(await hfs.isDirectory(dest))) return;
 
+	// Links from older syncs may target the real path rather than `source`.
+	const sources = [source.href, `${pathToFileURL(await realpath(source)).href}/`];
+
 	for await (const entry of hfs.list(dest)) {
 		if (!entry.isSymlink) continue;
 		if (keep.has(entry.name)) continue;
 
 		const linkPath = fileURLToPath(new URL(entry.name, dest));
 		try {
-			const target = await readlink(linkPath);
-			if (resolveLinkTarget(dest, target).href.startsWith(source.href)) {
+			const { href } = resolveLinkTarget(dest, await readlink(linkPath));
+			if (sources.some((s) => href.startsWith(s))) {
 				await hfs.deleteAll(linkPath);
 			}
 		} catch {
