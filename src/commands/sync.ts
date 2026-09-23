@@ -126,7 +126,7 @@ async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Pro
 	await hfs.write(gitignorePath, content);
 }
 
-async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
+export async function updateAgentsMd(options: { root: URL; skills: SkillInfo[] }): Promise<void> {
 	const { root, skills } = options;
 	const agentsPath = new URL('AGENTS.md', root);
 	let content = (await hfs.text(agentsPath)) ?? '';
