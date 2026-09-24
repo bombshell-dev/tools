@@ -16,4 +16,4 @@ If you'd like to use this package for your own projects, please consider forking
 
 ## Agent Skills
 
-If you use an AI coding agent, run `pnpm bsh sync` to symlink this package's skill files into your project's `skills/` directory. Synced skills are automatically added to your `.gitignore`, and an index of them is maintained in your `AGENTS.md`. Claude Code users: add `@AGENTS.md` to your project's `CLAUDE.md`.
+If you use an AI coding agent, run `pnpm bsh sync` to symlink this package's skill files into your project's `.agents/skills/` directory. Synced skills are automatically added to your `.gitignore`, and an index of them is maintained in your `AGENTS.md`.

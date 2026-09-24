@@ -1,8 +1,14 @@
 import { lstat, readlink, realpath, symlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createFixture, createMocks } from '../test-utils/index.ts';
-import { copySkills, findParentPackage, resolveSkillsSource, updateAgentsMd } from './sync.ts';
+import {
+	copySkills,
+	findParentPackage,
+	resolveSkillsSource,
+	sync,
+	updateAgentsMd,
+} from './sync.ts';
 
 describe('copySkills', () => {
 	it('symlinks each skill into the destination', async () => {
@@ -127,7 +133,7 @@ describe('updateAgentsMd', () => {
 		});
 
 		expect(await fixture.text('AGENTS.md')).toContain(
-			'- **test** — [skills/test/SKILL.md](skills/test/SKILL.md) - Vitest test runner with colocated .test.ts files\n',
+			'- **test** — [.agents/skills/test/SKILL.md](.agents/skills/test/SKILL.md) - Vitest test runner with colocated .test.ts files\n',
 		);
 	});
 });
@@ -178,5 +184,64 @@ describe('findParentPackage', () => {
 		createMocks({ env: { INIT_CWD: fileURLToPath(fixture.root) } });
 
 		expect(await findParentPackage()).toBe(null);
+	});
+});
+
+describe('sync', () => {
+	it('links skills into .agents/skills and replaces links from older syncs', async () => {
+		const fixture = await createFixture({
+			project: {
+				'package.json': '{ "name": "my-app" }',
+				'AGENTS.md': '# Project\n',
+				'.gitignore': 'node_modules\n\n# bsh:skills\nskills/lifecycle/\n# /bsh:skills\n',
+				// Left behind by an older version, now dangling.
+				skills: {
+					lifecycle: ({ symlink }) =>
+						symlink('../node_modules/.pnpm/old-hash/node_modules/@bomb.sh/tools/skills/lifecycle'),
+					'mine.md': 'user-owned',
+				},
+			},
+		});
+		// Resolve the real path so relative links survive a symlinked tmpdir (macOS).
+		const project = await realpath(fileURLToPath(new URL('project/', fixture.root)));
+		createMocks({ env: { INIT_CWD: project } });
+		vi.spyOn(console, 'info').mockImplementation(() => {});
+
+		await sync({ args: [] });
+
+		const link = fileURLToPath(new URL('project/.agents/skills/lifecycle', fixture.root));
+		expect((await lstat(link)).isSymbolicLink()).toBe(true);
+		expect(await fixture.text('project/.agents/skills/lifecycle/SKILL.md')).toContain(
+			'name: lifecycle',
+		);
+
+		await expect(
+			lstat(fileURLToPath(new URL('project/skills/lifecycle', fixture.root))),
+		).rejects.toThrow();
+		expect(await fixture.text('project/skills/mine.md')).toBe('user-owned');
+
+		const gitignore = await fixture.text('project/.gitignore');
+		expect(gitignore).toContain('.agents/skills/lifecycle/');
+		expect(gitignore).not.toMatch(/^skills\//m);
+
+		expect(await fixture.text('project/AGENTS.md')).toContain(
+			'[.agents/skills/lifecycle/SKILL.md](.agents/skills/lifecycle/SKILL.md)',
+		);
+	});
+
+	it('removes the legacy skills directory once it is empty', async () => {
+		const fixture = await createFixture({
+			project: {
+				'package.json': '{ "name": "my-app" }',
+				skills: { lifecycle: ({ symlink }) => symlink('../gone/lifecycle') },
+			},
+		});
+		const project = await realpath(fileURLToPath(new URL('project/', fixture.root)));
+		createMocks({ env: { INIT_CWD: project } });
+		vi.spyOn(console, 'info').mockImplementation(() => {});
+
+		await sync({ args: [] });
+
+		expect(await fixture.isDirectory('project/skills')).toBe(false);
 	});
 });
