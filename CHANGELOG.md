@@ -1,5 +1,19 @@
 # @bomb.sh/tools
 
+## 0.7.0
+
+### Minor Changes
+
+- 52fd524: Changes `bsh sync` to link skills into `.agents/skills/` instead of `skills/`. Re-run `bsh sync` to move existing links; it removes the old `skills/` links and updates the `.gitignore` and `AGENTS.md` entries.
+
+### Patch Changes
+
+- df8a41e: `test` CLI command keeps vitest's default excludes, so test files inside nested `node_modules` are no longer collected.
+- 1f085b9: `test` CLI command respects internal `vitest` call and passes the exit code to the user.
+- 815cf15: `format` CLI command applies the shared `ignorePatterns` to the project being formatted instead of only to files inside `@bomb.sh/tools`.
+- 1071d34: Fixes `bsh sync` writing garbled or truncated skill descriptions to `AGENTS.md`
+- ee9dcfd: Fixes `bsh sync` creating skill symlinks that break after reinstalling dependencies with pnpm
+
 ## 0.6.1
 
 ### Patch Changes
