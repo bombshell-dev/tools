@@ -1,4 +1,4 @@
-import { lstat, readlink, realpath, symlink } from 'node:fs/promises';
+import { lstat, readlink, realpath, symlink as fsSymlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
 import { createFixture, createMocks } from '../test-utils/index.ts';
@@ -102,7 +102,7 @@ describe('copySkills', () => {
 			},
 		});
 		// Left behind by an older sync that linked through the real path.
-		await symlink(
+		await fsSymlink(
 			`${await realpath(fileURLToPath(new URL('store/skills/', fixture.root)))}/removed`,
 			fileURLToPath(new URL('project/skills/removed', fixture.root)),
 		);
