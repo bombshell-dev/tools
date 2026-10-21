@@ -159,7 +159,7 @@ const plugin = {
 		/**
 		 * Require JSDoc comments on exported functions and classes.
 		 *
-		 * Public APIs should have `/** ... *​/` documentation. Internal/unexported
+		 * Public APIs should have /** ... *&#47; documentation. Internal/unexported
 		 * functions are not flagged.
 		 */
 		'require-export-jsdoc': {
