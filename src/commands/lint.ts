@@ -207,15 +207,15 @@ export async function runKnip(options?: { strict?: boolean }): Promise<Violation
 
 async function runTypeScript(targets: string[]): Promise<Violation[]> {
 	// Always run in project mode: passing files on the command line makes
-	// tsgo skip the tsconfig (TS5112). Explicit targets filter the report
-	// after the fact instead.
-	const result = await x(local('tsgo'), ['--noEmit', '--pretty', 'false'], {
+	// tsc skip the tsconfig (TS5112), so explicit targets
+	// filter the report after the fact instead.
+	const result = await x(local('tsc'), ['--noEmit', '--pretty', 'false'], {
 		throwOnError: false,
 	});
 	const output = result.stdout + result.stderr;
 	if (!output.trim()) {
 		if (result.exitCode !== 0)
-			throw new ToolsError(`tsgo exited with code ${result.exitCode}`, 'tsgo-exit');
+			throw new ToolsError(`tsc exited with code ${result.exitCode}`, 'tsc-exit');
 		return [];
 	}
 

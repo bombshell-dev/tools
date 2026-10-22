@@ -59,7 +59,7 @@ These apply in addition to individual rules:
 | Tool | Where it runs | What It Catches |
 |------|---------------|-----------------|
 | **knip** | `bsh lint` | Unused dependencies/devDependencies (always); unused exports/types/files (`--strict` only) |
-| **tsgo** | `bsh lint` | TypeScript type errors (`--noEmit`, project mode) |
+| **tsc** | `bsh lint` | TypeScript type errors (`--noEmit`, project mode) |
 | **publint** | `bsh build` (publish gate) and `bsh publint` | Incorrect `package.json` exports, missing types, invalid fields (strict mode) |
 
 publint does not run in `bsh lint` — its file-existence checks need `dist/`,

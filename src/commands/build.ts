@@ -19,7 +19,7 @@ export async function build(ctx: CommandContext) {
 			sourcemap: true,
 			clean: true,
 			unbundle: !args.bundle,
-			dts: args.dts === false ? false : { tsgo: true },
+			dts: args.dts !== false,
 			minify: args.minify,
 		});
 	} catch (error) {
