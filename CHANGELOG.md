@@ -1,5 +1,13 @@
 # @bomb.sh/tools
 
+## 0.8.0
+
+### Minor Changes
+
+- 38de1e1: Upgrade `vitest` to v5.
+- 54b0168: Update to TypeScript v7 stable. Also updated tsdown to the latest for compatibility with `typescript@7`.
+- 4a89802: Update to `oxfmt@0.74.0` and `oxlint@1.89.0`.
+
 ## 0.7.0
 
 ### Minor Changes
