@@ -1,7 +1,7 @@
 ---
 name: lint
 description: >
-  Multi-tool linting pipeline: oxlint, knip, and tsgo run in parallel via
+  Multi-tool linting pipeline: oxlint, knip, and tsc run in parallel via
   pnpm run lint (publint gates pnpm run build instead). Covers Bombshell
   conventions: URL over node:path, max 2 params with options bag, named
   exports only, import type, prefer node builtins, no console.log, no
@@ -21,7 +21,7 @@ metadata:
 
 # Lint
 
-Multi-tool linting pipeline. oxlint, knip, and tsgo run in parallel with unified output.
+Multi-tool linting pipeline. oxlint, knip, and tsc run in parallel with unified output.
 
 ## Setup
 
@@ -34,7 +34,7 @@ pnpm run lint -- src/foo.ts        # Target specific files (default: whole proje
 pnpm -s run lint -- --format json  # Machine-readable report for agents/CI
 ```
 
-Do not run oxlint, knip, or tsgo directly. Always use `pnpm run lint`.
+Do not run oxlint, knip, or tsc directly. Always use `pnpm run lint`.
 (`--format json` needs `pnpm -s` to keep pnpm's banner out of stdout.)
 
 See [lifecycle/SKILL.md](../lifecycle/SKILL.md) for where lint fits in the development workflow (step 3: after tests pass, before format). Run `--strict` at PR handoff, not during the TDD loop.
@@ -47,7 +47,7 @@ See [lifecycle/SKILL.md](../lifecycle/SKILL.md) for where lint fits in the devel
 |------|---------------|-------------|
 | **oxlint** | JS/TS linting via Rust-based engine with Bombshell config | Yes (`--fix`) |
 | **knip** | Unused dependencies/devDependencies (always); unused exports, types, files (`--strict` only) | No |
-| **tsgo** | TypeScript type errors (`--noEmit`, project mode) | No |
+| **tsc** | TypeScript type errors (`--noEmit`, project mode) | No |
 
 Results merge into a single report grouped by file. **Errors print in full;
 warnings collapse to a per-rule count** (they never affect the exit code —

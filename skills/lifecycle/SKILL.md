@@ -27,7 +27,7 @@ All scripts proxy to `bsh <command>` via `package.json`. Never bypass them.
 | `pnpm run build`     | `bsh build`  | Build with tsdown (ESM, sourcemaps, clean) |
 | `pnpm run dev`       | `bsh dev`    | Watch mode with native Node TS transforms  |
 | `pnpm run format`    | `bsh format` | Format with oxfmt                          |
-| `pnpm run lint`      | `bsh lint`   | Parallel: oxlint + knip + tsgo             |
+| `pnpm run lint`      | `bsh lint`   | Parallel: oxlint + knip + tsc              |
 | `pnpm run test`      | `bsh test`   | Run tests with vitest (single run)         |
 | `pnpm run init`      | `bsh init`   | Scaffold new project from template         |
 
@@ -156,7 +156,7 @@ These are hard rules. Violating any of them is a failed task.
 | `npx oxfmt` / `pnpm exec oxfmt`             | `pnpm run format`                   |
 | `npx tsdown` / `pnpm exec tsdown`           | `pnpm run build`                    |
 | `npx knip` / `pnpm exec knip`               | `pnpm run lint`                     |
-| `npx tsc` / `tsgo` directly                 | `pnpm run lint` (includes type checking) |
+| `npx tsc` directly                         | `pnpm run lint` (includes type checking) |
 | `require()`, `module.exports`               | ESM `import` / `export`             |
 | Implement before writing tests               | Write tests first (RED→GREEN)       |
 | Claim "tests pass" without running them      | Always run `pnpm run test`          |
@@ -170,7 +170,7 @@ Agents default to `npx`. Bombshell projects always use `pnpm run` for local scri
 
 ### CRITICAL: Running underlying tools directly
 
-Never call `tsdown`, `vitest`, `oxlint`, `knip`, `oxfmt`, or `tsgo` directly. The `bsh` wrapper configures flags, paths, and parallelism. Bypassing it produces wrong behavior.
+Never call `tsdown`, `vitest`, `oxlint`, `knip`, `oxfmt`, or `tsc` directly. The `bsh` wrapper configures flags, paths, and parallelism. Bypassing it produces wrong behavior.
 
 ### CRITICAL: Using npm, yarn, or bun
 
@@ -182,7 +182,7 @@ Always write or update tests before implementation. The RED→GREEN cycle is not
 
 ### HIGH: Running tsc directly for type checking
 
-`pnpm run lint` runs `tsgo --noEmit` as part of its parallel pipeline. Do not run `tsc` or `tsgo` separately — the lint command handles it.
+`pnpm run lint` runs `tsc --noEmit` as part of its parallel pipeline. Do not run `tsc` separately — the lint command handles it.
 
 ### HIGH: Full autopilot PR creation
 

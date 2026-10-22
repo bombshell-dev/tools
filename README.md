@@ -9,7 +9,7 @@ If you'd like to use this package for your own projects, please consider forking
 - `bsh build` command, using [`tsdown`](https://tsdown.dev/) (ESM, unbundled, types by default) with [`publint`](https://publint.dev/) as a publish gate
 - `bsh test` command, using [`vitest`](https://vitest.dev/)
 - `bsh format` command, using [`oxfmt`](https://oxc.rs/docs/guide/usage/formatter)
-- `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter), [`knip`](https://knip.dev), [`tsgo`](https://npmx.dev/@typescript/native-preview)
+- `bsh lint` command, using [`oxlint`](https://oxc.rs/docs/guide/usage/linter), [`knip`](https://knip.dev), and TypeScript
 - `bsh publint` command, using [`publint`](https://publint.dev/) (also runs automatically as a publish gate in `bsh build`)
 - `bsh sync` command, which links our shared [agent skills](#agent-skills) into your project
 - shared `tsconfig.json` file
