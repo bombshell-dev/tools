@@ -222,7 +222,7 @@ describe('sync', () => {
 		expect(await fixture.text('project/skills/mine.md')).toBe('user-owned');
 
 		const gitignore = await fixture.text('project/.gitignore');
-		expect(gitignore).toContain('.agents/skills/lifecycle/');
+		expect(gitignore).toMatch(/^\.agents\/skills\/lifecycle$/m);
 		expect(gitignore).not.toMatch(/^skills\//m);
 
 		expect(await fixture.text('project/AGENTS.md')).toContain(
