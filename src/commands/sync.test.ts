@@ -1,5 +1,6 @@
-import { lstat, readlink, realpath, symlink as fsSymlink } from 'node:fs/promises';
+import { lstat, readdir, readlink, realpath, symlink as fsSymlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { x, type Output } from 'tinyexec';
 import { describe, it, expect, vi } from 'vitest';
 import { createFixture, createMocks } from '../test-utils/index.ts';
 import {
@@ -221,11 +222,61 @@ describe('sync', () => {
 		expect(await fixture.text('project/skills/mine.md')).toBe('user-owned');
 
 		const gitignore = await fixture.text('project/.gitignore');
-		expect(gitignore).toContain('.agents/skills/lifecycle/');
+		expect(gitignore).toMatch(/^\.agents\/skills\/lifecycle$/m);
 		expect(gitignore).not.toMatch(/^skills\//m);
 
 		expect(await fixture.text('project/AGENTS.md')).toContain(
 			'[.agents/skills/lifecycle/SKILL.md](.agents/skills/lifecycle/SKILL.md)',
+		);
+	});
+
+	it('writes .gitignore entries that git applies to the skill links', async () => {
+		const fixture = await createFixture({
+			project: { 'package.json': '{ "name": "my-app" }' },
+		});
+		const project = await realpath(fileURLToPath(new URL('project/', fixture.root)));
+		createMocks({ env: { INIT_CWD: project } });
+		vi.spyOn(console, 'info').mockImplementation(() => {});
+		// Keep the user's global and system git config (and its excludes file) out of the result.
+		const git = (args: string[]): PromiseLike<Output> =>
+			x('git', args, {
+				nodeOptions: {
+					cwd: project,
+					env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' },
+				},
+				throwOnError: true,
+			});
+		await git(['init', '--quiet']);
+
+		await sync({ args: [] });
+
+		expect(await readdir(new URL('project/.agents/skills/', fixture.root))).toContain('lifecycle');
+		const status = await git(['status', '--porcelain', '--untracked-files=all', '--', '.agents']);
+		expect(status.stdout).toBe('');
+	});
+
+	it('rewrites .gitignore entries from older syncs and keeps content outside the block', async () => {
+		const fixture = await createFixture({
+			project: {
+				'package.json': '{ "name": "my-app" }',
+				'.gitignore':
+					'node_modules\n\n# bsh:skills\n.agents/skills/lifecycle/\n.agents/skills/removed/\n# /bsh:skills\n\ndist\n',
+			},
+		});
+		const project = await realpath(fileURLToPath(new URL('project/', fixture.root)));
+		createMocks({ env: { INIT_CWD: project } });
+		vi.spyOn(console, 'info').mockImplementation(() => {});
+
+		await sync({ args: [] });
+
+		const linked = (await readdir(new URL('project/.agents/skills/', fixture.root))).toSorted();
+		const gitignore = await fixture.text('project/.gitignore');
+		const match = /^node_modules\n\n# bsh:skills\n([\s\S]*)\n# \/bsh:skills\n\ndist\n$/.exec(
+			gitignore!,
+		);
+		expect(match).not.toBeNull();
+		expect(match![1]!.split('\n').toSorted()).toEqual(
+			linked.map((name) => `.agents/skills/${name}`),
 		);
 	});
 

@@ -149,7 +149,8 @@ async function updateGitignore(options: { root: URL; skills: SkillInfo[] }): Pro
 	const gitignorePath = new URL('.gitignore', root);
 	let content = (await hfs.text(gitignorePath)) ?? '';
 
-	const lines = skills.map((s) => `${SKILLS_DIR}${s.name}/`);
+	// No trailing slash: git treats a symlink as a file, and `dir/` only matches directories.
+	const lines = skills.map((s) => `${SKILLS_DIR}${s.name}`);
 	const section = [GITIGNORE_START, ...lines, GITIGNORE_END].join('\n');
 
 	const startIdx = content.indexOf(GITIGNORE_START);
